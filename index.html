@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>BLACKROCK PRO V9.7</title>
+    <title>BLACKROCK PRO V9.9</title>
     <style>
         :root { --bg: #0f0f0f; --panel: #1a1a1a; --item: #252525; --point: #007bff; --text: #e0e0e0; }
         body { font-family: 'Pretendard', sans-serif; margin: 0; background: var(--bg); color: var(--text); user-select: none; }
@@ -58,8 +58,12 @@
 </div>
 
 <script>
-    // 데이터 로드 및 초기화
-    let db = JSON.parse(localStorage.getItem('br_v97')) || JSON.parse(localStorage.getItem('br_v96')) || { "인사": [{t:"안녕하세요, 블랙록 강노을입니다."}] };
+    // 데이터 로드 (이전 버전 호환 유지)
+    let db = JSON.parse(localStorage.getItem('br_v99')) || 
+             JSON.parse(localStorage.getItem('br_v97')) || 
+             JSON.parse(localStorage.getItem('br_v96')) || 
+             { "인사": [{t:"안녕하세요, 블랙록 강노을입니다."}] };
+             
     let curTab = Object.keys(db)[0];
     let editIdx = -1;
     let rightClickedTab = "";
@@ -69,12 +73,10 @@
         const tabBar = document.getElementById('tabBar');
         const search = document.getElementById('searchBox').value.toLowerCase();
         
-        // 탭 바 렌더링
         tabBar.innerHTML = Object.keys(db).map(t => 
             `<button class="tab-btn ${t===curTab?'active':''}" onclick="setTab('${t}')" oncontextmenu="showTabMenu(event, '${t}')">${t}</button>`
         ).join('');
         
-        // 리스트 렌더링
         list.innerHTML = "";
         (db[curTab] || []).forEach((item, i) => {
             if(item.t.toLowerCase().includes(search)) {
@@ -87,9 +89,13 @@
                     <div class="num">${i+1}.</div>
                     <div class="macro-content" onclick="copy('${item.t.replace(/'/g, "\\'")}')">${item.t}</div>
                 `;
-                div.ondblclick = () => { editIdx = i; document.getElementById('inpText').value = item.t; document.getElementById('mainBtn').innerText = "수정"; document.getElementById('inpText').focus(); };
+                div.ondblclick = () => { 
+                    editIdx = i; 
+                    document.getElementById('inpText').value = item.t; 
+                    document.getElementById('mainBtn').innerText = "수정"; 
+                    document.getElementById('inpText').focus(); 
+                };
                 
-                // 드래그 앤 드롭 로직
                 div.addEventListener('dragstart', (e) => { e.dataTransfer.setData('idx', i); div.style.opacity = '0.4'; });
                 div.addEventListener('dragover', (e) => e.preventDefault());
                 div.addEventListener('drop', (e) => {
@@ -104,10 +110,12 @@
         });
     }
 
-    // ⚡ 복사 함수 (네모 제거 핵심 로직)
+    // ⚡ [필살기] LD플레이어 네모 박멸 복사 함수
     function copy(t) {
-        // .trim()으로 앞뒤 불필요한 공백과 줄바꿈 문자를 완전히 제거
-        const cleanText = t.trim();
+        // 1. 앞뒤 공백 및 엔터값 제거
+        // 2. 안드로이드(LD)에서 네모로 보이는 특수 제어 문자(\x00-\x1F)를 정규식으로 박살냄
+        const cleanText = t.trim().replace(/[\x00-\x1F\x7F-\x9F]/g, "");
+        
         navigator.clipboard.writeText(cleanText).then(() => {
             const ts = document.getElementById('toast');
             ts.className = 'show';
@@ -115,7 +123,6 @@
         });
     }
 
-    // 우클릭 메뉴 관련
     function showTabMenu(e, tabName) {
         e.preventDefault(); e.stopPropagation();
         rightClickedTab = tabName;
@@ -148,7 +155,6 @@
 
     window.onclick = () => document.getElementById('contextMenu').style.display = 'none';
 
-    // 탭 관리
     function addTabPrompt() {
         const n = prompt("새 탭 이름을 입력하세요.");
         if(n && !db[n]) { db[n] = []; curTab = n; saveDB(); render(); }
@@ -168,7 +174,6 @@
 
     function setTab(t) { curTab = t; render(); }
 
-    // 문장 저장 (추가/수정)
     function saveItem() {
         const t = document.getElementById('inpText').value.trim();
         if(!t) return;
@@ -187,13 +192,12 @@
     document.getElementById('inpText').addEventListener('keypress', (e) => { if(e.key === 'Enter') saveItem(); });
     function delItem(i) { if(confirm("문장을 삭제할까요?")) { db[curTab].splice(i, 1); saveDB(); render(); } }
     
-    // 데이터 보존
-    function saveDB() { localStorage.setItem('br_v97', JSON.stringify(db)); }
+    function saveDB() { localStorage.setItem('br_v99', JSON.stringify(db)); }
     function exportData() {
         const blob = new Blob([JSON.stringify(db)], {type: 'application/json'});
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = 'blackrock_macro_v97.json';
+        a.download = 'blackrock_macro_v9.json';
         a.click();
     }
     function importData(input) {
@@ -204,7 +208,7 @@
                 const importedData = JSON.parse(reader.result);
                 if(confirm("기존 데이터에 내용을 합칠까요?")) {
                     for(let k in importedData) { if(db[k]) db[k] = db[k].concat(importedData[k]); else db[k] = importedData[k]; }
-                    saveDB(); render(); alert("복구 및 합치기 완료!");
+                    saveDB(); render(); alert("복구 완료!");
                 }
             } catch(e) { alert("파일 오류"); }
         };
