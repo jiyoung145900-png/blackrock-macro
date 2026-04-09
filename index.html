@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>BLACKROCK PRO V9.1</title>
+    <title>BLACKROCK PRO V9.2</title>
     <style>
         :root { --bg: #0f0f0f; --panel: #1a1a1a; --item: #252525; --point: #007bff; --text: #e0e0e0; }
         body { font-family: 'Pretendard', sans-serif; margin: 0; background: var(--bg); color: var(--text); user-select: none; }
@@ -81,16 +81,21 @@
 
 <script>
     let db = JSON.parse(localStorage.getItem('br_v9')) || { "인사": [{t:"안녕하세요, 블랙록 강노을입니다."}] };
-    let tabs = Object.keys(db);
-    let curTab = tabs[0];
+    let curTab = Object.keys(db)[0];
     let editIdx = -1;
 
     function render() {
         const list = document.getElementById('list');
+        const tabBar = document.getElementById('tabBar');
         const search = document.getElementById('searchBox').value.toLowerCase();
-        document.getElementById('tabBar').innerHTML = tabs.map(t => `<button class="tab-btn ${t===curTab?'active':''}" onclick="setTab('${t}')">${t}</button>`).join('');
+        
+        // 탭 바 렌더링 (중복 방지: Object.keys(db)를 직접 사용)
+        tabBar.innerHTML = Object.keys(db).map(t => 
+            `<button class="tab-btn ${t===curTab?'active':''}" onclick="setTab('${t}')">${t}</button>`
+        ).join('');
+        
         list.innerHTML = "";
-        db[curTab].forEach((item, i) => {
+        (db[curTab] || []).forEach((item, i) => {
             if(item.t.toLowerCase().includes(search)) {
                 const div = document.createElement('div');
                 div.className = 'macro-item';
@@ -120,6 +125,7 @@
     function closeModal(id) { document.getElementById(id).style.display = 'none'; editIdx = -1; document.getElementById('inpText').value = ""; document.getElementById('modalTitle').innerText="새 문장 등록"; }
     function setTab(t) { curTab = t; render(); }
     function copy(t) { navigator.clipboard.writeText(t); const ts = document.getElementById('toast'); ts.className = 'show'; setTimeout(()=>ts.className='', 1000); }
+    
     function saveItem() {
         const t = document.getElementById('inpText').value;
         if(!t) return;
@@ -127,36 +133,49 @@
         else db[curTab][editIdx].t = t;
         saveDB(); render(); closeModal('addModal');
     }
+
     function delItem(i) { if(confirm("삭제할까요?")) { db[curTab].splice(i, 1); saveDB(); render(); } }
-    function addTab() { const n = document.getElementById('newTabName').value; if(n && !db[n]) { db[n] = []; tabs = Object.keys(db); tabs.push(n); curTab = n; saveDB(); render(); closeModal('tabModal'); } }
-    function delTab() { if(tabs.length > 1 && confirm("탭을 삭제할까요?")) { delete db[curTab]; tabs = Object.keys(db); curTab = tabs[0]; saveDB(); render(); closeModal('tabModal'); } }
-    function saveDB() { localStorage.setItem('br_v9', JSON.stringify(db)); }
-    
-    // 백업(저장) 기능
-    function exportData() {
-        const blob = new Blob([JSON.stringify(db)], {type: 'application/json'});
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'blackrock_macro.json';
-        a.click();
+
+    // 탭 추가 로직 수정 (중복 생성 버그 해결)
+    function addTab() {
+        const n = document.getElementById('newTabName').value.trim();
+        if(n && !db[n]) {
+            db[n] = []; 
+            curTab = n; 
+            saveDB(); 
+            render(); 
+            document.getElementById('newTabName').value=""; 
+            closeModal('tabModal');
+        } else if(db[n]) {
+            alert("이미 존재하는 탭 이름입니다.");
+        }
     }
 
-    // 복원(불러오기) 기능 - 지영 님이 원하시던 바로 그 기능!
+    function delTab() {
+        const tabs = Object.keys(db);
+        if(tabs.length > 1 && confirm("탭을 삭제할까요?")) {
+            delete db[curTab];
+            curTab = Object.keys(db)[0];
+            saveDB(); render(); closeModal('tabModal');
+        } else if(tabs.length <= 1) {
+            alert("최소 하나의 탭은 있어야 합니다.");
+        }
+    }
+
+    function saveDB() { localStorage.setItem('br_v9', JSON.stringify(db)); }
+    function exportData() { const blob = new Blob([JSON.stringify(db)], {type: 'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'blackrock_macro.json'; a.click(); }
     function importData(input) {
         const file = input.files[0];
         const reader = new FileReader();
         reader.onload = function() {
             try {
                 const importedData = JSON.parse(reader.result);
-                if(confirm("기존 내용을 지우고 백업 파일을 불러올까요?")) {
+                if(confirm("데이터를 복원할까요?")) {
                     db = importedData;
-                    tabs = Object.keys(db);
-                    curTab = tabs[0];
-                    saveDB();
-                    render();
-                    alert("데이터 복원이 완료되었습니다!");
+                    curTab = Object.keys(db)[0];
+                    saveDB(); render(); alert("복구 완료!");
                 }
-            } catch(e) { alert("파일이 올바르지 않습니다."); }
+            } catch(e) { alert("파일 오류"); }
         };
         reader.readAsText(file);
     }
