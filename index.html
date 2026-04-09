@@ -2,12 +2,11 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>BLACKROCK PRO V9.4</title>
+    <title>BLACKROCK PRO V9.5</title>
     <style>
         :root { --bg: #0f0f0f; --panel: #1a1a1a; --item: #252525; --point: #007bff; --text: #e0e0e0; }
         body { font-family: 'Pretendard', sans-serif; margin: 0; background: var(--bg); color: var(--text); user-select: none; }
         
-        /* 헤더 영역: 등록창을 아예 밖으로 뺌 */
         .header { display: flex; align-items: center; padding: 12px; background: var(--panel); border-bottom: 1px solid #333; gap: 8px; }
         .search-input { flex: 1; background: #000; border: 1px solid #444; color: #00ff00; padding: 8px; border-radius: 4px; outline: none; font-size: 13px; }
         .add-input { flex: 2; background: #000; border: 1px solid var(--point); color: white; padding: 8px; border-radius: 4px; outline: none; font-size: 13px; }
@@ -21,10 +20,11 @@
         .tab-btn { padding: 6px 14px; background: #333; border: none; color: #aaa; cursor: pointer; border-radius: 4px; font-size: 12px; position: relative; }
         .tab-btn.active { background: var(--point); color: white; font-weight: bold; }
 
-        /* 커스텀 우클릭 메뉴 스타일 */
-        #contextMenu { display: none; position: fixed; background: #333; border: 1px solid #555; z-index: 2000; border-radius: 4px; padding: 5px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.5); }
-        #contextMenu div { padding: 8px 20px; cursor: pointer; font-size: 12px; color: white; }
+        /* 우클릭 메뉴: 지영 님 요청 순서 적용 */
+        #contextMenu { display: none; position: fixed; background: #2a2a2a; border: 1px solid #444; z-index: 2000; border-radius: 6px; padding: 5px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.6); min-width: 140px; }
+        #contextMenu div { padding: 10px 18px; cursor: pointer; font-size: 13px; color: white; transition: 0.2s; }
         #contextMenu div:hover { background: var(--point); }
+        .menu-sep { border-top: 1px solid #444; margin: 5px 0; }
 
         .macro-list { display: grid; grid-template-columns: 1fr; gap: 4px; }
         .macro-item { display: flex; align-items: center; background: var(--item); padding: 8px 12px; border-radius: 4px; border: 1px solid #2d2d2d; }
@@ -46,14 +46,15 @@
 <div id="toast">복사 완료!</div>
 
 <div id="contextMenu">
-    <div onclick="editTabPrompt()">탭 이름 수정</div>
-    <div onclick="delTabConfirm()">탭 삭제</div>
-    <div onclick="addTabPrompt()">새 탭 추가</div>
+    <div onclick="addTabPrompt()">➕ 새 탭 추가</div>
+    <div onclick="editTabPrompt()">📝 탭 이름 수정</div>
+    <div class="menu-sep"></div>
+    <div onclick="delTabConfirm()" style="color: #ff6b6b;">❌ 현재 탭 삭제</div>
 </div>
 
 <div class="header">
     <input type="text" id="searchBox" class="search-input" placeholder="🔍 검색어..." onkeyup="render()">
-    <input type="text" id="inpText" class="add-input" placeholder="새 문장 입력 후 엔터 또는 추가 클릭...">
+    <input type="text" id="inpText" class="add-input" placeholder="새 문장 입력 후 엔터...">
     <button class="menu-btn btn-add" id="mainBtn" onclick="saveItem()">추가</button>
     <button class="menu-btn btn-backup" onclick="exportData()">저장</button>
     <button class="menu-btn btn-restore" onclick="document.getElementById('importFile').click()">복원</button>
@@ -66,7 +67,7 @@
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('br_v94')) || { "인사": [{t:"안녕하세요, 블랙록 강노을입니다."}] };
+    let db = JSON.parse(localStorage.getItem('br_v95')) || { "인사": [{t:"안녕하세요, 블랙록 강노을입니다."}] };
     let curTab = Object.keys(db)[0];
     let editIdx = -1;
     let rightClickedTab = "";
@@ -107,7 +108,6 @@
         });
     }
 
-    // 우클릭 메뉴 로직
     function showContextMenu(e, tabName) {
         e.preventDefault();
         rightClickedTab = tabName;
@@ -134,7 +134,7 @@
     }
 
     function delTabConfirm() {
-        if(Object.keys(db).length > 1 && confirm(`'${rightClickedTab}' 탭을 삭제할까요?`)) {
+        if(Object.keys(db).length > 1 && confirm(`'${rightClickedTab}' 탭을 정말 삭제할까요?`)) {
             delete db[rightClickedTab];
             curTab = Object.keys(db)[0];
             saveDB(); render();
@@ -152,11 +152,9 @@
         saveDB(); render(); document.getElementById('inpText').value = "";
     }
 
-    // 엔터키 추가 가능
     document.getElementById('inpText').addEventListener('keypress', (e) => { if(e.key === 'Enter') saveItem(); });
-
-    function delItem(i) { if(confirm("삭제할까요?")) { db[curTab].splice(i, 1); saveDB(); render(); } }
-    function saveDB() { localStorage.setItem('br_v94', JSON.stringify(db)); }
+    function delItem(i) { if(confirm("문장을 삭제할까요?")) { db[curTab].splice(i, 1); saveDB(); render(); } }
+    function saveDB() { localStorage.setItem('br_v95', JSON.stringify(db)); }
     function exportData() { const blob = new Blob([JSON.stringify(db)], {type: 'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'blackrock_macro.json'; a.click(); }
     function importData(input) {
         const file = input.files[0];
@@ -164,9 +162,9 @@
         reader.onload = function() {
             try {
                 const importedData = JSON.parse(reader.result);
-                if(confirm("데이터를 합칠까요?")) {
+                if(confirm("기존 데이터에 내용을 합칠까요?")) {
                     for(let k in importedData) { if(db[k]) db[k] = db[k].concat(importedData[k]); else db[k] = importedData[k]; }
-                    saveDB(); render(); alert("복구 완료!");
+                    saveDB(); render(); alert("복구 및 합치기 완료!");
                 }
             } catch(e) { alert("파일 오류"); }
         };
