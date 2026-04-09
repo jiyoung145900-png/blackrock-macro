@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>블랙록 강노을 전문가 전용 툴</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #f4f4f4; }
+        .tab-container { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 10px; }
+        .tab { padding: 10px 20px; background: #ddd; border: none; cursor: pointer; border-radius: 5px; white-space: nowrap; }
+        .tab.active { background: #000; color: #fff; font-weight: bold; }
+        .content { display: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
+        .item-card { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .item-card p { margin: 0 0 10px 0; font-size: 14px; color: #333; line-height: 1.4; }
+        .copy-btn { width: 100%; padding: 8px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .copy-btn:active { background: #0056b3; }
+    </style>
+</head>
+<body>
+
+    <h2>💰 블랙록 실전 상담 보드 (강노을 전용)</h2>
+
+    <div class="tab-container">
+        <button class="tab active" onclick="showTab('tab1')">신규 인사</button>
+        <button class="tab" onclick="showTab('tab2')">수익률/팩트</button>
+        <button class="tab" onclick="showTab('tab3')">종목 리포트</button>
+        <button class="tab" onclick="showTab('tab4')">ㅈ만이 대응</button>
+        <button class="tab" onclick="showTab('tab5')">마무리/결제</button>
+    </div>
+
+    <div id="tab1" class="tab-content">
+        <div class="content">
+            <div class="item-card"><p>안녕하세요, 블랙록 자산운용팀 강노을입니다.</p><button class="copy-btn" onclick="copyText(this)">복사</button></div>
+            <div class="item-card"><p>반갑습니다. 블랙록 한국주식 투자 세미나 담당자입니다.</p><button class="copy-btn" onclick="copyText(this)">복사</button></div>
+        </div>
+    </div>
+
+    <div id="tab2" class="tab-content" style="display:none;">
+        <div class="content">
+            <div class="item-card"><p>2025년 기준 한국주식 수익률 70% 이상 달성 중입니다.</p><button class="copy-btn" onclick="copyText(this)">복사</button></div>
+            <div class="item-card"><p>저희가 공략한 조선업 섹터는 현재 평균 80% 수익권입니다.</p><button class="copy-btn" onclick="copyText(this)">복사</button></div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabId) {
+            // 모든 탭 내용 숨기기
+            document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+            // 모든 탭 버튼 비활성화
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+            // 선택한 탭만 보이기
+            document.getElementById(tabId).style.display = 'block';
+            event.currentTarget.classList.add('active');
+        }
+
+        function copyText(btn) {
+            const text = btn.parentElement.querySelector('p').innerText;
+            navigator.clipboard.writeText(text);
+            const originalText = btn.innerText;
+            btn.innerText = "✅ 복사됨!";
+            setTimeout(() => { btn.innerText = originalText; }, 1000);
+        }
+    </script>
+</body>
+</html>
