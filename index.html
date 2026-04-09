@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>BLACKROCK PRO V9.2</title>
+    <title>BLACKROCK PRO V9.3</title>
     <style>
         :root { --bg: #0f0f0f; --panel: #1a1a1a; --item: #252525; --point: #007bff; --text: #e0e0e0; }
         body { font-family: 'Pretendard', sans-serif; margin: 0; background: var(--bg); color: var(--text); user-select: none; }
@@ -49,7 +49,7 @@
     <button class="menu-btn" onclick="openModal('addModal')">+ 추가</button>
     <button class="menu-btn" onclick="openModal('tabModal')">⚙️ 탭 관리</button>
     <button class="menu-btn btn-backup" onclick="exportData()">📥 백업(저장)</button>
-    <button class="menu-btn btn-restore" onclick="document.getElementById('importFile').click()">📤 복원(불러오기)</button>
+    <button class="menu-btn btn-restore" onclick="document.getElementById('importFile').click()">📤 복원(기존 데이터에 추가)</button>
     <input type="file" id="importFile" style="display:none" onchange="importData(this)">
 </div>
 
@@ -89,7 +89,6 @@
         const tabBar = document.getElementById('tabBar');
         const search = document.getElementById('searchBox').value.toLowerCase();
         
-        // 탭 바 렌더링 (중복 방지: Object.keys(db)를 직접 사용)
         tabBar.innerHTML = Object.keys(db).map(t => 
             `<button class="tab-btn ${t===curTab?'active':''}" onclick="setTab('${t}')">${t}</button>`
         ).join('');
@@ -125,7 +124,6 @@
     function closeModal(id) { document.getElementById(id).style.display = 'none'; editIdx = -1; document.getElementById('inpText').value = ""; document.getElementById('modalTitle').innerText="새 문장 등록"; }
     function setTab(t) { curTab = t; render(); }
     function copy(t) { navigator.clipboard.writeText(t); const ts = document.getElementById('toast'); ts.className = 'show'; setTimeout(()=>ts.className='', 1000); }
-    
     function saveItem() {
         const t = document.getElementById('inpText').value;
         if(!t) return;
@@ -133,53 +131,49 @@
         else db[curTab][editIdx].t = t;
         saveDB(); render(); closeModal('addModal');
     }
-
     function delItem(i) { if(confirm("삭제할까요?")) { db[curTab].splice(i, 1); saveDB(); render(); } }
-
-    // 탭 추가 로직 수정 (중복 생성 버그 해결)
     function addTab() {
         const n = document.getElementById('newTabName').value.trim();
-        if(n && !db[n]) {
-            db[n] = []; 
-            curTab = n; 
-            saveDB(); 
-            render(); 
-            document.getElementById('newTabName').value=""; 
-            closeModal('tabModal');
-        } else if(db[n]) {
-            alert("이미 존재하는 탭 이름입니다.");
-        }
+        if(n && !db[n]) { db[n] = []; curTab = n; saveDB(); render(); document.getElementById('newTabName').value=""; closeModal('tabModal'); }
     }
-
     function delTab() {
-        const tabs = Object.keys(db);
-        if(tabs.length > 1 && confirm("탭을 삭제할까요?")) {
-            delete db[curTab];
-            curTab = Object.keys(db)[0];
-            saveDB(); render(); closeModal('tabModal');
-        } else if(tabs.length <= 1) {
-            alert("최소 하나의 탭은 있어야 합니다.");
-        }
+        if(Object.keys(db).length > 1 && confirm("탭을 삭제할까요?")) { delete db[curTab]; curTab = Object.keys(db)[0]; saveDB(); render(); closeModal('tabModal'); }
+    }
+    function saveDB() { localStorage.setItem('br_v9', JSON.stringify(db)); }
+    function exportData() {
+        const blob = new Blob([JSON.stringify(db)], {type: 'application/json'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'blackrock_macro.json';
+        a.click();
     }
 
-    function saveDB() { localStorage.setItem('br_v9', JSON.stringify(db)); }
-    function exportData() { const blob = new Blob([JSON.stringify(db)], {type: 'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'blackrock_macro.json'; a.click(); }
+    // ⭐ 복원(합치기) 로직으로 수정
     function importData(input) {
         const file = input.files[0];
         const reader = new FileReader();
         reader.onload = function() {
             try {
                 const importedData = JSON.parse(reader.result);
-                if(confirm("데이터를 복원할까요?")) {
-                    db = importedData;
-                    curTab = Object.keys(db)[0];
-                    saveDB(); render(); alert("복구 완료!");
+                if(confirm("기존 데이터는 유지하고, 파일의 내용을 추가할까요?")) {
+                    // 탭별로 순회하며 합치기
+                    for (let tabName in importedData) {
+                        if (!db[tabName]) {
+                            // 새로운 탭이면 탭 통째로 추가
+                            db[tabName] = importedData[tabName];
+                        } else {
+                            // 이미 있는 탭이면 내용물만 뒤에 붙이기
+                            db[tabName] = db[tabName].concat(importedData[tabName]);
+                        }
+                    }
+                    saveDB();
+                    render();
+                    alert("데이터를 성공적으로 합쳤습니다!");
                 }
             } catch(e) { alert("파일 오류"); }
         };
         reader.readAsText(file);
     }
-    
     render();
 </script>
 </body>
