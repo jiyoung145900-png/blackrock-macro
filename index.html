@@ -2,65 +2,85 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>블랙록 강노을 상담 대시보드 V6</title>
+    <title>블랙록 강노을 상담 대시보드 V7.1</title>
     <style>
         body { font-family: 'Malgun Gothic', sans-serif; padding: 15px; background: #121212; color: #e0e0e0; user-select: none; font-size: 13px; }
-        h2 { font-size: 18px; margin-top: 0; color: #007bff; }
-        .tab-bar { display: flex; gap: 4px; margin-bottom: 15px; flex-wrap: wrap; }
-        .tab-btn { padding: 6px 12px; cursor: pointer; background: #333; border: none; color: white; border-radius: 4px; font-size: 12px; }
+        h2 { font-size: 18px; margin: 0 0 10px 0; color: #007bff; display: flex; justify-content: space-between; align-items: center; }
+        .save-status { font-size: 11px; color: #28a745; font-weight: normal; }
+        
+        .tab-bar { display: flex; gap: 4px; margin-bottom: 10px; flex-wrap: wrap; }
+        .tab-btn { padding: 5px 10px; cursor: pointer; background: #333; border: none; color: white; border-radius: 4px; font-size: 12px; }
         .tab-btn.active { background: #007bff; font-weight: bold; }
         
-        .content-area { background: #1e1e1e; padding: 10px; border-radius: 8px; min-height: 450px; border: 1px solid #333; }
+        #searchBox { width: 100%; padding: 8px; margin-bottom: 10px; background: #222; border: 1px solid #444; color: #00ff00; border-radius: 4px; box-sizing: border-box; outline: none; }
+
+        .content-area { background: #1e1e1e; padding: 10px; border-radius: 8px; min-height: 400px; border: 1px solid #333; overflow-y: auto; max-height: 55vh; }
         
-        /* 콤팩트한 아이템 스타일 */
-        .macro-item { display: flex; align-items: center; background: #2d2d2d; padding: 6px 10px; margin-bottom: 4px; border-radius: 4px; border: 1px solid #3a3a3a; cursor: grab; }
-        .macro-item:hover { background: #383838; border-color: #555; }
-        .macro-item.dragging { opacity: 0.5; background: #444; border: 1px dashed #007bff; }
+        .macro-item { display: flex; align-items: center; background: #2d2d2d; padding: 5px 10px; margin-bottom: 3px; border-radius: 4px; border: 1px solid #3a3a3a; cursor: grab; }
+        .macro-item:hover { background: #383838; }
         
-        .num-tag { color: #888; font-weight: bold; margin-right: 10px; width: 25px; text-align: right; font-family: monospace; }
-        .handle { margin-right: 10px; color: #555; font-size: 16px; }
-        .macro-text { flex: 1; padding: 2px 0; font-size: 13px; color: #fff; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .num-tag { color: #888; font-weight: bold; margin-right: 8px; width: 20px; font-size: 11px; }
+        .alias-tag { color: #007bff; font-weight: bold; margin-right: 10px; min-width: 60px; }
+        .macro-text { flex: 1; font-size: 13px; color: #fff; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
-        .btn-group { display: flex; gap: 4px; margin-left: 10px; }
-        button { cursor: pointer; border: none; border-radius: 3px; padding: 4px 8px; font-weight: bold; font-size: 11px; }
+        .btn-group { display: flex; gap: 3px; margin-left: 10px; }
+        button { cursor: pointer; border: none; border-radius: 3px; padding: 4px 8px; font-size: 11px; font-weight: bold; }
         .edit-btn { background: #ffc107; color: black; }
         .del-btn { background: #dc3545; color: white; }
         
         .admin-panel { margin-top: 15px; padding: 12px; background: #252525; border-radius: 8px; border: 1px dashed #444; }
-        input { padding: 8px; background: #333; border: 1px solid #444; color: white; border-radius: 4px; font-size: 12px; }
-        hr { border: 0.5px solid #333; margin: 12px 0; }
+        input { padding: 8px; background: #333; border: 1px solid #444; color: white; border-radius: 4px; font-size: 12px; margin-bottom: 5px; }
+        
+        .footer-btns { margin-top: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .btn-save { background: #28a745; color: white; padding: 10px; }
+        .btn-load { background: #6c757d; color: white; padding: 10px; }
 
         #toast {
-            visibility: hidden; min-width: 120px; background-color: #28a745; color: #fff; text-align: center;
-            border-radius: 4px; padding: 8px; position: fixed; z-index: 1000; right: 20px; top: 20px; font-size: 12px;
+            visibility: hidden; min-width: 100px; background-color: #28a745; color: #fff; text-align: center;
+            border-radius: 4px; padding: 8px; position: fixed; z-index: 1000; right: 20px; top: 20px;
         }
         #toast.show { visibility: visible; animation: fadein 0.2s, fadeout 0.2s 0.6s; }
-        @keyframes fadein { from {top: 0; opacity: 0;} to {top: 20px; opacity: 1;} }
-        @keyframes fadeout { from {top: 20px; opacity: 1;} to {top: 0; opacity: 0;} }
+        @keyframes fadein { from {top:0; opacity:0;} to {top:20px; opacity:1;} }
+        @keyframes fadeout { from {top:20px; opacity:1;} to {top:0; opacity:0;} }
     </style>
 </head>
 <body>
 
     <div id="toast">복사 완료!</div>
 
-    <h2>🏦 BLACKROCK 상담 보드 V6</h2>
+    <h2>
+        🏦 BLACKROCK FINAL 7.1
+        <span class="save-status" id="saveStatus">● 모든 변경사항 자동 저장됨</span>
+    </h2>
+
+    <input type="text" id="searchBox" placeholder="🔍 검색어 입력 (실시간 필터링)" onkeyup="renderMacros()">
 
     <div class="tab-bar" id="tabBar"></div>
     <div class="content-area" id="macroList"></div>
 
     <div class="admin-panel">
-        <strong>[탭]</strong> 
-        <input type="text" id="newTabName" style="width:100px;" placeholder="새 이름">
-        <button onclick="addTab()" style="background:#555; color:white;">추가</button>
-        <button onclick="deleteCurrentTab()" style="background:#721c24; color:white;">삭제</button>
+        <strong>[문장 편집]</strong><br>
+        <input type="text" id="newAlias" style="width: 20%;" placeholder="별칭">
+        <input type="text" id="newText" style="width: 75%;" placeholder="본문 내용 입력..."><br>
+        <button onclick="addOrUpdateMacro()" id="addBtn" style="background:#007bff; color:white; width:100%; padding:10px; font-size:14px;">데이터 저장 (자동 저장 포함)</button>
+        
         <hr>
-        <strong>[등록/수정]</strong>
-        <input type="text" id="newText" style="width: 65%;" placeholder="문장을 입력하세요...">
-        <button onclick="addOrUpdateMacro()" id="addBtn" style="background:#007bff; color:white;">저장</button>
+        
+        <strong>[탭 관리]</strong> 
+        <input type="text" id="newTabName" style="width:80px;" placeholder="탭 이름">
+        <button onclick="addTab()" style="background:#555; color:white;">탭 추가</button>
+        <button onclick="deleteCurrentTab()" style="background:#721c24; color:white;">현재 탭 삭제</button>
+        
+        <div class="footer-btns">
+            <button class="btn-save" onclick="exportData()">📥 전체 데이터 백업 파일 받기</button>
+            <button class="btn-load" onclick="document.getElementById('importFile').click()">📤 백업 파일 불러오기</button>
+            <input type="file" id="importFile" style="display:none" onchange="importData(this)">
+        </div>
     </div>
 
     <script>
-        let macros = JSON.parse(localStorage.getItem('br_macros_v6')) || { "신규인사": ["안녕하세요, 블랙록 강노을입니다."] };
+        // 로컬스토리지에서 데이터 불러오기
+        let macros = JSON.parse(localStorage.getItem('br_v7_data')) || { "신규인사": [{a:"인사", t:"안녕하세요, 블랙록 강노을입니다."}] };
         let categories = Object.keys(macros);
         let currentTab = categories[0];
         let editIndex = -1;
@@ -73,30 +93,36 @@
             renderMacros();
         }
 
-        function setTab(cat) { currentTab = cat; editIndex = -1; document.getElementById('addBtn').innerText = "저장"; init(); }
+        function setTab(cat) { currentTab = cat; editIndex = -1; document.getElementById('addBtn').innerText = "데이터 저장 (자동 저장 포함)"; init(); }
 
         function renderMacros() {
             const list = document.getElementById('macroList');
+            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
             list.innerHTML = "";
-            (macros[currentTab] || []).forEach((text, idx) => {
-                const item = document.createElement('div');
-                item.className = 'macro-item';
-                item.draggable = true;
-                item.dataset.index = idx;
-                item.innerHTML = `
-                    <div class="handle">☰</div>
-                    <div class="num-tag">${idx + 1}.</div>
-                    <div class="macro-text" onclick="copyText('${text.replace(/'/g, "\\'")}')">${text}</div>
-                    <div class="btn-group">
-                        <button class="edit-btn" onclick="editMacro(${idx})">편집</button>
-                        <button class="del-btn" onclick="deleteMacro(${idx})">삭제</button>
-                    </div>
-                `;
-                item.addEventListener('dragstart', dragStart);
-                item.addEventListener('dragover', dragOver);
-                item.addEventListener('drop', drop);
-                item.addEventListener('dragend', dragEnd);
-                list.appendChild(item);
+            
+            (macros[currentTab] || []).forEach((itemData, idx) => {
+                const alias = itemData.a || "내용";
+                const text = itemData.t || "";
+                
+                if (alias.toLowerCase().includes(searchTerm) || text.toLowerCase().includes(searchTerm)) {
+                    const item = document.createElement('div');
+                    item.className = 'macro-item';
+                    item.draggable = true;
+                    item.dataset.index = idx;
+                    item.innerHTML = `
+                        <div class="num-tag">${idx + 1}</div>
+                        <div class="alias-tag">[${alias}]</div>
+                        <div class="macro-text" onclick="copyText('${text.replace(/'/g, "\\'")}')">${text}</div>
+                        <div class="btn-group">
+                            <button class="edit-btn" onclick="editMacro(${idx})">편집</button>
+                            <button class="del-btn" onclick="deleteMacro(${idx})">삭제</button>
+                        </div>
+                    `;
+                    item.addEventListener('dragstart', dragStart);
+                    item.addEventListener('dragover', dragOver);
+                    item.addEventListener('drop', drop);
+                    list.appendChild(item);
+                }
             });
         }
 
@@ -104,9 +130,10 @@
             navigator.clipboard.writeText(text);
             const toast = document.getElementById("toast");
             toast.className = "show";
-            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 800);
+            setTimeout(() => { toast.className = ""; }, 800);
         }
 
+        // 드래그 앤 드롭
         let dragSrcIndex;
         function dragStart(e) { dragSrcIndex = this.dataset.index; this.classList.add('dragging'); }
         function dragOver(e) { e.preventDefault(); }
@@ -118,27 +145,39 @@
                 save(); renderMacros();
             }
         }
-        function dragEnd() { this.classList.remove('dragging'); }
 
         function addOrUpdateMacro() {
+            const alias = document.getElementById('newAlias').value || "내용";
             const txt = document.getElementById('newText').value;
             if(!txt) return;
-            if(editIndex === -1) { macros[currentTab].push(txt); } 
-            else { macros[currentTab][editIndex] = txt; editIndex = -1; document.getElementById('addBtn').innerText = "저장"; }
-            save(); renderMacros(); document.getElementById('newText').value = '';
+
+            if(editIndex === -1) {
+                macros[currentTab].push({a: alias, t: txt});
+            } else {
+                macros[currentTab][editIndex] = {a: alias, t: txt};
+                editIndex = -1;
+                document.getElementById('addBtn').innerText = "데이터 저장 (자동 저장 포함)";
+            }
+            save(); renderMacros();
+            document.getElementById('newAlias').value = '';
+            document.getElementById('newText').value = '';
+            showStatus("저장 완료!");
         }
 
         function editMacro(idx) {
             editIndex = idx;
-            document.getElementById('newText').value = macros[currentTab][idx];
-            document.getElementById('addBtn').innerText = "수정";
+            document.getElementById('newAlias').value = macros[currentTab][idx].a;
+            document.getElementById('newText').value = macros[currentTab][idx].t;
+            document.getElementById('addBtn').innerText = "내용 수정 확정하기";
             document.getElementById('newText').focus();
         }
 
         function deleteMacro(idx) {
-            if(confirm("삭제?")) {
-                macros[currentTab].splice(idx, 1);
-                save(); renderMacros();
+            if(confirm("이 문장을 삭제할까요?")) { 
+                macros[currentTab].splice(idx, 1); 
+                save(); 
+                renderMacros(); 
+                showStatus("삭제 및 저장됨");
             }
         }
 
@@ -147,14 +186,49 @@
             if(!name || macros[name]) return;
             macros[name] = []; categories.push(name); currentTab = name; save(); init();
             document.getElementById('newTabName').value = '';
+            showStatus("탭 추가됨");
         }
 
         function deleteCurrentTab() {
-            if(categories.length <= 1 || !confirm(`[${currentTab}] 삭제?`)) return;
+            if(categories.length <= 1 || !confirm(`${currentTab} 탭의 모든 내용을 삭제할까요?`)) return;
             delete macros[currentTab]; categories = Object.keys(macros); currentTab = categories[0]; save(); init();
+            showStatus("탭 삭제됨");
         }
 
-        function save() { localStorage.setItem('br_macros_v6', JSON.stringify(macros)); }
+        function exportData() {
+            const dataStr = JSON.stringify(macros);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', 'blackrock_macro_backup.json');
+            linkElement.click();
+        }
+
+        function importData(input) {
+            const file = input.files[0];
+            const reader = new FileReader();
+            reader.onload = function() {
+                try {
+                    macros = JSON.parse(reader.result);
+                    categories = Object.keys(macros);
+                    currentTab = categories[0];
+                    save(); init();
+                    alert("성공적으로 데이터를 복구했습니다!");
+                } catch(e) { alert("파일이 올바르지 않습니다."); }
+            };
+            reader.readAsText(file);
+        }
+
+        function save() { 
+            localStorage.setItem('br_v7_data', JSON.stringify(macros)); 
+        }
+
+        function showStatus(msg) {
+            const status = document.getElementById('saveStatus');
+            status.innerText = "● " + msg;
+            setTimeout(() => { status.innerText = "● 모든 변경사항 자동 저장됨"; }, 2000);
+        }
+
         init();
     </script>
 </body>
