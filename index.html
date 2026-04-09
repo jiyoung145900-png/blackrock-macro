@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>BLACKROCK PRO V9.9</title>
+    <title>BLACKROCK PRO V9.9.1</title>
     <style>
         :root { --bg: #0f0f0f; --panel: #1a1a1a; --item: #252525; --point: #007bff; --text: #e0e0e0; }
         body { font-family: 'Pretendard', sans-serif; margin: 0; background: var(--bg); color: var(--text); user-select: none; }
@@ -12,8 +12,6 @@
         .add-input { flex: 2; background: #000; border: 1px solid var(--point); color: white; padding: 8px; border-radius: 4px; outline: none; font-size: 13px; }
         .menu-btn { background: #444; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; white-space: nowrap; }
         .btn-add { background: var(--point); }
-        .btn-backup { background: #28a745; }
-        .btn-restore { background: #ffc107; color: black; }
 
         .container { padding: 12px; height: calc(100vh - 75px); overflow-y: auto; }
         .tab-bar { display: flex; gap: 4px; margin-bottom: 12px; flex-wrap: wrap; }
@@ -26,11 +24,11 @@
         .menu-sep { border-top: 1px solid #444; margin: 5px 0; }
 
         .macro-list { display: grid; grid-template-columns: 1fr; gap: 4px; }
-        .macro-item { display: flex; align-items: center; background: var(--item); padding: 8px 12px; border-radius: 4px; border: 1px solid #2d2d2d; }
+        .macro-item { display: flex; align-items: center; background: var(--item); padding: 10px 15px; border-radius: 4px; border: 1px solid #2d2d2d; }
         .macro-item:hover { border-color: var(--point); background: #2a2a2a; }
-        .handle { color: #555; cursor: grab; margin-right: 12px; }
+        .handle { color: #555; cursor: grab; margin-right: 12px; font-size: 18px; }
         .num { color: #666; width: 25px; font-weight: bold; font-size: 11px; }
-        .macro-content { flex: 1; cursor: pointer; font-size: 14px; line-height: 1.4; }
+        .macro-content { flex: 1; cursor: pointer; font-size: 14px; line-height: 1.4; user-select: none; }
 
         #toast { visibility: hidden; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #28a745; color: white; padding: 8px 20px; border-radius: 20px; font-size: 12px; z-index: 3000; }
         #toast.show { visibility: visible; animation: fadein 0.2s, fadeout 0.2s 0.7s; }
@@ -47,8 +45,8 @@
     <input type="text" id="searchBox" class="search-input" placeholder="🔍 검색어..." onkeyup="render()">
     <input type="text" id="inpText" class="add-input" placeholder="새 문장 입력 후 엔터...">
     <button class="menu-btn btn-add" id="mainBtn" onclick="saveItem()">추가</button>
-    <button class="menu-btn btn-backup" onclick="exportData()">저장</button>
-    <button class="menu-btn btn-restore" onclick="document.getElementById('importFile').click()">복원</button>
+    <button class="menu-btn" style="background:#28a745;" onclick="exportData()">저장</button>
+    <button class="menu-btn" style="background:#ffc107; color:black;" onclick="document.getElementById('importFile').click()">복원</button>
     <input type="file" id="importFile" style="display:none" onchange="importData(this)">
 </div>
 
@@ -58,12 +56,7 @@
 </div>
 
 <script>
-    // 데이터 로드 (이전 버전 호환 유지)
-    let db = JSON.parse(localStorage.getItem('br_v99')) || 
-             JSON.parse(localStorage.getItem('br_v97')) || 
-             JSON.parse(localStorage.getItem('br_v96')) || 
-             { "인사": [{t:"안녕하세요, 블랙록 강노을입니다."}] };
-             
+    let db = JSON.parse(localStorage.getItem('br_v99')) || { "인사": [{t:"안녕하세요, 블랙록 강노을입니다."}] };
     let curTab = Object.keys(db)[0];
     let editIdx = -1;
     let rightClickedTab = "";
@@ -89,12 +82,8 @@
                     <div class="num">${i+1}.</div>
                     <div class="macro-content" onclick="copy('${item.t.replace(/'/g, "\\'")}')">${item.t}</div>
                 `;
-                div.ondblclick = () => { 
-                    editIdx = i; 
-                    document.getElementById('inpText').value = item.t; 
-                    document.getElementById('mainBtn').innerText = "수정"; 
-                    document.getElementById('inpText').focus(); 
-                };
+                
+                // 더블클릭 이벤트 삭제 (더 이상 검색창으로 안 튐)
                 
                 div.addEventListener('dragstart', (e) => { e.dataTransfer.setData('idx', i); div.style.opacity = '0.4'; });
                 div.addEventListener('dragover', (e) => e.preventDefault());
@@ -110,12 +99,9 @@
         });
     }
 
-    // ⚡ [필살기] LD플레이어 네모 박멸 복사 함수
+    // ⚡ 복사 함수
     function copy(t) {
-        // 1. 앞뒤 공백 및 엔터값 제거
-        // 2. 안드로이드(LD)에서 네모로 보이는 특수 제어 문자(\x00-\x1F)를 정규식으로 박살냄
         const cleanText = t.trim().replace(/[\x00-\x1F\x7F-\x9F]/g, "");
-        
         navigator.clipboard.writeText(cleanText).then(() => {
             const ts = document.getElementById('toast');
             ts.className = 'show';
@@ -156,18 +142,18 @@
     window.onclick = () => document.getElementById('contextMenu').style.display = 'none';
 
     function addTabPrompt() {
-        const n = prompt("새 탭 이름을 입력하세요.");
+        const n = prompt("새 탭 이름?");
         if(n && !db[n]) { db[n] = []; curTab = n; saveDB(); render(); }
     }
     function editTabPrompt() {
-        const n = prompt("변경할 탭 이름을 입력하세요.", rightClickedTab);
+        const n = prompt("변경할 이름?", rightClickedTab);
         if(n && n !== rightClickedTab && !db[n]) {
             db[n] = db[rightClickedTab]; delete db[rightClickedTab];
             curTab = n; saveDB(); render();
         }
     }
     function delTabConfirm() {
-        if(Object.keys(db).length > 1 && confirm(`'${rightClickedTab}' 탭을 삭제할까요?`)) {
+        if(Object.keys(db).length > 1 && confirm(`탭 삭제할까요?`)) {
             delete db[rightClickedTab]; curTab = Object.keys(db)[0]; saveDB(); render();
         }
     }
@@ -190,16 +176,9 @@
     }
 
     document.getElementById('inpText').addEventListener('keypress', (e) => { if(e.key === 'Enter') saveItem(); });
-    function delItem(i) { if(confirm("문장을 삭제할까요?")) { db[curTab].splice(i, 1); saveDB(); render(); } }
-    
+    function delItem(i) { if(confirm("삭제할까요?")) { db[curTab].splice(i, 1); saveDB(); render(); } }
     function saveDB() { localStorage.setItem('br_v99', JSON.stringify(db)); }
-    function exportData() {
-        const blob = new Blob([JSON.stringify(db)], {type: 'application/json'});
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'blackrock_macro_v9.json';
-        a.click();
-    }
+    function exportData() { const blob = new Blob([JSON.stringify(db)], {type: 'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'blackrock_v9.json'; a.click(); }
     function importData(input) {
         const file = input.files[0];
         const reader = new FileReader();
@@ -214,7 +193,6 @@
         };
         reader.readAsText(file);
     }
-    
     render();
 </script>
 </body>
