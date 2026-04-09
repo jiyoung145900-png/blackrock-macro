@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>BLACKROCK PRO V9.6</title>
+    <title>BLACKROCK PRO V9.7</title>
     <style>
         :root { --bg: #0f0f0f; --panel: #1a1a1a; --item: #252525; --point: #007bff; --text: #e0e0e0; }
         body { font-family: 'Pretendard', sans-serif; margin: 0; background: var(--bg); color: var(--text); user-select: none; }
@@ -20,7 +20,6 @@
         .tab-btn { padding: 6px 14px; background: #333; border: none; color: #aaa; cursor: pointer; border-radius: 4px; font-size: 12px; }
         .tab-btn.active { background: var(--point); color: white; font-weight: bold; }
 
-        /* 커스텀 우클릭 메뉴 */
         #contextMenu { display: none; position: fixed; background: #2a2a2a; border: 1px solid #444; z-index: 2000; border-radius: 6px; padding: 5px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.6); min-width: 140px; }
         #contextMenu div { padding: 10px 18px; cursor: pointer; font-size: 13px; color: white; transition: 0.1s; }
         #contextMenu div:hover { background: var(--point); }
@@ -42,7 +41,6 @@
 <body>
 
 <div id="toast">복사 완료!</div>
-
 <div id="contextMenu"></div>
 
 <div class="header">
@@ -60,34 +58,38 @@
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('br_v96')) || { "인사": [{t:"안녕하세요, 블랙록 강노을입니다."}] };
+    // 데이터 로드 및 초기화
+    let db = JSON.parse(localStorage.getItem('br_v97')) || JSON.parse(localStorage.getItem('br_v96')) || { "인사": [{t:"안녕하세요, 블랙록 강노을입니다."}] };
     let curTab = Object.keys(db)[0];
     let editIdx = -1;
     let rightClickedTab = "";
-    let rightClickedItemIdx = -1;
 
     function render() {
         const list = document.getElementById('list');
         const tabBar = document.getElementById('tabBar');
         const search = document.getElementById('searchBox').value.toLowerCase();
         
+        // 탭 바 렌더링
         tabBar.innerHTML = Object.keys(db).map(t => 
             `<button class="tab-btn ${t===curTab?'active':''}" onclick="setTab('${t}')" oncontextmenu="showTabMenu(event, '${t}')">${t}</button>`
         ).join('');
         
+        // 리스트 렌더링
         list.innerHTML = "";
         (db[curTab] || []).forEach((item, i) => {
             if(item.t.toLowerCase().includes(search)) {
                 const div = document.createElement('div');
                 div.className = 'macro-item';
                 div.draggable = true;
-                div.oncontextmenu = (e) => showItemMenu(e, i); // 문장 우클릭 이벤트
+                div.oncontextmenu = (e) => showItemMenu(e, i);
                 div.innerHTML = `
                     <div class="handle">☰</div>
                     <div class="num">${i+1}.</div>
                     <div class="macro-content" onclick="copy('${item.t.replace(/'/g, "\\'")}')">${item.t}</div>
                 `;
                 div.ondblclick = () => { editIdx = i; document.getElementById('inpText').value = item.t; document.getElementById('mainBtn').innerText = "수정"; document.getElementById('inpText').focus(); };
+                
+                // 드래그 앤 드롭 로직
                 div.addEventListener('dragstart', (e) => { e.dataTransfer.setData('idx', i); div.style.opacity = '0.4'; });
                 div.addEventListener('dragover', (e) => e.preventDefault());
                 div.addEventListener('drop', (e) => {
@@ -102,7 +104,18 @@
         });
     }
 
-    // 탭 우클릭 메뉴
+    // ⚡ 복사 함수 (네모 제거 핵심 로직)
+    function copy(t) {
+        // .trim()으로 앞뒤 불필요한 공백과 줄바꿈 문자를 완전히 제거
+        const cleanText = t.trim();
+        navigator.clipboard.writeText(cleanText).then(() => {
+            const ts = document.getElementById('toast');
+            ts.className = 'show';
+            setTimeout(() => ts.className = '', 1000);
+        });
+    }
+
+    // 우클릭 메뉴 관련
     function showTabMenu(e, tabName) {
         e.preventDefault(); e.stopPropagation();
         rightClickedTab = tabName;
@@ -116,10 +129,8 @@
         displayMenu(e);
     }
 
-    // 문장 우클릭 메뉴
     function showItemMenu(e, idx) {
         e.preventDefault(); e.stopPropagation();
-        rightClickedItemIdx = idx;
         const menu = document.getElementById('contextMenu');
         menu.innerHTML = `
             <div onclick="editItemFromMenu(${idx})">📝 이 문장 수정</div>
@@ -137,6 +148,7 @@
 
     window.onclick = () => document.getElementById('contextMenu').style.display = 'none';
 
+    // 탭 관리
     function addTabPrompt() {
         const n = prompt("새 탭 이름을 입력하세요.");
         if(n && !db[n]) { db[n] = []; curTab = n; saveDB(); render(); }
@@ -155,8 +167,8 @@
     }
 
     function setTab(t) { curTab = t; render(); }
-    function copy(t) { navigator.clipboard.writeText(t); const ts = document.getElementById('toast'); ts.className = 'show'; setTimeout(()=>ts.className='', 1000); }
-    
+
+    // 문장 저장 (추가/수정)
     function saveItem() {
         const t = document.getElementById('inpText').value.trim();
         if(!t) return;
@@ -175,8 +187,15 @@
     document.getElementById('inpText').addEventListener('keypress', (e) => { if(e.key === 'Enter') saveItem(); });
     function delItem(i) { if(confirm("문장을 삭제할까요?")) { db[curTab].splice(i, 1); saveDB(); render(); } }
     
-    function saveDB() { localStorage.setItem('br_v96', JSON.stringify(db)); }
-    function exportData() { const blob = new Blob([JSON.stringify(db)], {type: 'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'blackrock_macro.json'; a.click(); }
+    // 데이터 보존
+    function saveDB() { localStorage.setItem('br_v97', JSON.stringify(db)); }
+    function exportData() {
+        const blob = new Blob([JSON.stringify(db)], {type: 'application/json'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'blackrock_macro_v97.json';
+        a.click();
+    }
     function importData(input) {
         const file = input.files[0];
         const reader = new FileReader();
