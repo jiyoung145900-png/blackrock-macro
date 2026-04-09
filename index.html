@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>BLACKROCK PRO V9.5</title>
+    <title>BLACKROCK PRO V9.6</title>
     <style>
         :root { --bg: #0f0f0f; --panel: #1a1a1a; --item: #252525; --point: #007bff; --text: #e0e0e0; }
         body { font-family: 'Pretendard', sans-serif; margin: 0; background: var(--bg); color: var(--text); user-select: none; }
@@ -17,23 +17,21 @@
 
         .container { padding: 12px; height: calc(100vh - 75px); overflow-y: auto; }
         .tab-bar { display: flex; gap: 4px; margin-bottom: 12px; flex-wrap: wrap; }
-        .tab-btn { padding: 6px 14px; background: #333; border: none; color: #aaa; cursor: pointer; border-radius: 4px; font-size: 12px; position: relative; }
+        .tab-btn { padding: 6px 14px; background: #333; border: none; color: #aaa; cursor: pointer; border-radius: 4px; font-size: 12px; }
         .tab-btn.active { background: var(--point); color: white; font-weight: bold; }
 
-        /* 우클릭 메뉴: 지영 님 요청 순서 적용 */
+        /* 커스텀 우클릭 메뉴 */
         #contextMenu { display: none; position: fixed; background: #2a2a2a; border: 1px solid #444; z-index: 2000; border-radius: 6px; padding: 5px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.6); min-width: 140px; }
-        #contextMenu div { padding: 10px 18px; cursor: pointer; font-size: 13px; color: white; transition: 0.2s; }
+        #contextMenu div { padding: 10px 18px; cursor: pointer; font-size: 13px; color: white; transition: 0.1s; }
         #contextMenu div:hover { background: var(--point); }
         .menu-sep { border-top: 1px solid #444; margin: 5px 0; }
 
         .macro-list { display: grid; grid-template-columns: 1fr; gap: 4px; }
         .macro-item { display: flex; align-items: center; background: var(--item); padding: 8px 12px; border-radius: 4px; border: 1px solid #2d2d2d; }
-        .macro-item:hover { border-color: var(--point); }
+        .macro-item:hover { border-color: var(--point); background: #2a2a2a; }
         .handle { color: #555; cursor: grab; margin-right: 12px; }
         .num { color: #666; width: 25px; font-weight: bold; font-size: 11px; }
         .macro-content { flex: 1; cursor: pointer; font-size: 14px; line-height: 1.4; }
-        .del-item-btn { background: none; border: none; color: #444; cursor: pointer; font-size: 10px; }
-        .del-item-btn:hover { color: #dc3545; }
 
         #toast { visibility: hidden; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #28a745; color: white; padding: 8px 20px; border-radius: 20px; font-size: 12px; z-index: 3000; }
         #toast.show { visibility: visible; animation: fadein 0.2s, fadeout 0.2s 0.7s; }
@@ -45,12 +43,7 @@
 
 <div id="toast">복사 완료!</div>
 
-<div id="contextMenu">
-    <div onclick="addTabPrompt()">➕ 새 탭 추가</div>
-    <div onclick="editTabPrompt()">📝 탭 이름 수정</div>
-    <div class="menu-sep"></div>
-    <div onclick="delTabConfirm()" style="color: #ff6b6b;">❌ 현재 탭 삭제</div>
-</div>
+<div id="contextMenu"></div>
 
 <div class="header">
     <input type="text" id="searchBox" class="search-input" placeholder="🔍 검색어..." onkeyup="render()">
@@ -67,10 +60,11 @@
 </div>
 
 <script>
-    let db = JSON.parse(localStorage.getItem('br_v95')) || { "인사": [{t:"안녕하세요, 블랙록 강노을입니다."}] };
+    let db = JSON.parse(localStorage.getItem('br_v96')) || { "인사": [{t:"안녕하세요, 블랙록 강노을입니다."}] };
     let curTab = Object.keys(db)[0];
     let editIdx = -1;
     let rightClickedTab = "";
+    let rightClickedItemIdx = -1;
 
     function render() {
         const list = document.getElementById('list');
@@ -78,7 +72,7 @@
         const search = document.getElementById('searchBox').value.toLowerCase();
         
         tabBar.innerHTML = Object.keys(db).map(t => 
-            `<button class="tab-btn ${t===curTab?'active':''}" onclick="setTab('${t}')" oncontextmenu="showContextMenu(event, '${t}')">${t}</button>`
+            `<button class="tab-btn ${t===curTab?'active':''}" onclick="setTab('${t}')" oncontextmenu="showTabMenu(event, '${t}')">${t}</button>`
         ).join('');
         
         list.innerHTML = "";
@@ -87,11 +81,11 @@
                 const div = document.createElement('div');
                 div.className = 'macro-item';
                 div.draggable = true;
+                div.oncontextmenu = (e) => showItemMenu(e, i); // 문장 우클릭 이벤트
                 div.innerHTML = `
                     <div class="handle">☰</div>
                     <div class="num">${i+1}.</div>
                     <div class="macro-content" onclick="copy('${item.t.replace(/'/g, "\\'")}')">${item.t}</div>
-                    <button class="del-item-btn" onclick="delItem(${i})">X</button>
                 `;
                 div.ondblclick = () => { editIdx = i; document.getElementById('inpText').value = item.t; document.getElementById('mainBtn').innerText = "수정"; document.getElementById('inpText').focus(); };
                 div.addEventListener('dragstart', (e) => { e.dataTransfer.setData('idx', i); div.style.opacity = '0.4'; });
@@ -108,9 +102,33 @@
         });
     }
 
-    function showContextMenu(e, tabName) {
-        e.preventDefault();
+    // 탭 우클릭 메뉴
+    function showTabMenu(e, tabName) {
+        e.preventDefault(); e.stopPropagation();
         rightClickedTab = tabName;
+        const menu = document.getElementById('contextMenu');
+        menu.innerHTML = `
+            <div onclick="addTabPrompt()">➕ 새 탭 추가</div>
+            <div onclick="editTabPrompt()">📝 탭 이름 수정</div>
+            <div class="menu-sep"></div>
+            <div onclick="delTabConfirm()" style="color: #ff6b6b;">❌ 현재 탭 삭제</div>
+        `;
+        displayMenu(e);
+    }
+
+    // 문장 우클릭 메뉴
+    function showItemMenu(e, idx) {
+        e.preventDefault(); e.stopPropagation();
+        rightClickedItemIdx = idx;
+        const menu = document.getElementById('contextMenu');
+        menu.innerHTML = `
+            <div onclick="editItemFromMenu(${idx})">📝 이 문장 수정</div>
+            <div onclick="delItem(${idx})" style="color: #ff6b6b;">❌ 이 문장 삭제</div>
+        `;
+        displayMenu(e);
+    }
+
+    function displayMenu(e) {
         const menu = document.getElementById('contextMenu');
         menu.style.display = 'block';
         menu.style.left = e.pageX + 'px';
@@ -123,21 +141,16 @@
         const n = prompt("새 탭 이름을 입력하세요.");
         if(n && !db[n]) { db[n] = []; curTab = n; saveDB(); render(); }
     }
-
     function editTabPrompt() {
         const n = prompt("변경할 탭 이름을 입력하세요.", rightClickedTab);
         if(n && n !== rightClickedTab && !db[n]) {
-            db[n] = db[rightClickedTab];
-            delete db[rightClickedTab];
+            db[n] = db[rightClickedTab]; delete db[rightClickedTab];
             curTab = n; saveDB(); render();
         }
     }
-
     function delTabConfirm() {
-        if(Object.keys(db).length > 1 && confirm(`'${rightClickedTab}' 탭을 정말 삭제할까요?`)) {
-            delete db[rightClickedTab];
-            curTab = Object.keys(db)[0];
-            saveDB(); render();
+        if(Object.keys(db).length > 1 && confirm(`'${rightClickedTab}' 탭을 삭제할까요?`)) {
+            delete db[rightClickedTab]; curTab = Object.keys(db)[0]; saveDB(); render();
         }
     }
 
@@ -152,9 +165,17 @@
         saveDB(); render(); document.getElementById('inpText').value = "";
     }
 
+    function editItemFromMenu(idx) {
+        editIdx = idx;
+        document.getElementById('inpText').value = db[curTab][idx].t;
+        document.getElementById('mainBtn').innerText = "수정";
+        document.getElementById('inpText').focus();
+    }
+
     document.getElementById('inpText').addEventListener('keypress', (e) => { if(e.key === 'Enter') saveItem(); });
     function delItem(i) { if(confirm("문장을 삭제할까요?")) { db[curTab].splice(i, 1); saveDB(); render(); } }
-    function saveDB() { localStorage.setItem('br_v95', JSON.stringify(db)); }
+    
+    function saveDB() { localStorage.setItem('br_v96', JSON.stringify(db)); }
     function exportData() { const blob = new Blob([JSON.stringify(db)], {type: 'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'blackrock_macro.json'; a.click(); }
     function importData(input) {
         const file = input.files[0];
