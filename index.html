@@ -2,62 +2,65 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>블랙록 강노을 상담 대시보드 V5</title>
+    <title>블랙록 강노을 상담 대시보드 V6</title>
     <style>
-        body { font-family: 'Malgun Gothic', sans-serif; padding: 20px; background: #121212; color: #e0e0e0; user-select: none; }
-        .tab-bar { display: flex; gap: 5px; margin-bottom: 20px; flex-wrap: wrap; }
-        .tab-btn { padding: 10px 20px; cursor: pointer; background: #333; border: none; color: white; border-radius: 5px; }
-        .tab-btn.active { background: #007bff; font-weight: bold; box-shadow: 0 0 10px rgba(0,123,255,0.5); }
-        .content-area { background: #1e1e1e; padding: 20px; border-radius: 10px; min-height: 400px; border: 1px solid #333; }
+        body { font-family: 'Malgun Gothic', sans-serif; padding: 15px; background: #121212; color: #e0e0e0; user-select: none; font-size: 13px; }
+        h2 { font-size: 18px; margin-top: 0; color: #007bff; }
+        .tab-bar { display: flex; gap: 4px; margin-bottom: 15px; flex-wrap: wrap; }
+        .tab-btn { padding: 6px 12px; cursor: pointer; background: #333; border: none; color: white; border-radius: 4px; font-size: 12px; }
+        .tab-btn.active { background: #007bff; font-weight: bold; }
         
-        .macro-item { display: flex; align-items: center; background: #2d2d2d; padding: 12px; margin-bottom: 8px; border-radius: 5px; border: 1px solid #444; cursor: grab; }
-        .macro-item:active { cursor: grabbing; }
+        .content-area { background: #1e1e1e; padding: 10px; border-radius: 8px; min-height: 450px; border: 1px solid #333; }
+        
+        /* 콤팩트한 아이템 스타일 */
+        .macro-item { display: flex; align-items: center; background: #2d2d2d; padding: 6px 10px; margin-bottom: 4px; border-radius: 4px; border: 1px solid #3a3a3a; cursor: grab; }
+        .macro-item:hover { background: #383838; border-color: #555; }
         .macro-item.dragging { opacity: 0.5; background: #444; border: 1px dashed #007bff; }
         
-        .handle { margin-right: 15px; color: #666; font-size: 20px; }
-        .macro-text { flex: 1; padding: 5px; font-size: 15px; line-height: 1.4; color: #fff; cursor: pointer; }
-        .btn-group { display: flex; gap: 6px; margin-left: 10px; }
+        .num-tag { color: #888; font-weight: bold; margin-right: 10px; width: 25px; text-align: right; font-family: monospace; }
+        .handle { margin-right: 10px; color: #555; font-size: 16px; }
+        .macro-text { flex: 1; padding: 2px 0; font-size: 13px; color: #fff; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
-        button { cursor: pointer; border: none; border-radius: 3px; padding: 8px 12px; font-weight: bold; }
+        .btn-group { display: flex; gap: 4px; margin-left: 10px; }
+        button { cursor: pointer; border: none; border-radius: 3px; padding: 4px 8px; font-weight: bold; font-size: 11px; }
         .edit-btn { background: #ffc107; color: black; }
         .del-btn { background: #dc3545; color: white; }
         
-        .admin-panel { margin-top: 25px; padding: 20px; background: #252525; border-radius: 10px; border: 1px dashed #555; }
-        input { padding: 12px; background: #333; border: 1px solid #444; color: white; border-radius: 5px; }
-        hr { border: 0.5px solid #333; margin: 20px 0; }
+        .admin-panel { margin-top: 15px; padding: 12px; background: #252525; border-radius: 8px; border: 1px dashed #444; }
+        input { padding: 8px; background: #333; border: 1px solid #444; color: white; border-radius: 4px; font-size: 12px; }
+        hr { border: 0.5px solid #333; margin: 12px 0; }
 
-        /* 토스트 알림 메시지 (확인 버튼 없음) */
         #toast {
-            visibility: hidden; min-width: 150px; background-color: #28a745; color: #fff; text-align: center;
-            border-radius: 5px; padding: 10px; position: fixed; z-index: 1000; right: 30px; top: 30px; font-size: 14px;
+            visibility: hidden; min-width: 120px; background-color: #28a745; color: #fff; text-align: center;
+            border-radius: 4px; padding: 8px; position: fixed; z-index: 1000; right: 20px; top: 20px; font-size: 12px;
         }
-        #toast.show { visibility: visible; animation: fadein 0.3s, fadeout 0.3s 0.7s; }
-        @keyframes fadein { from {top: 0; opacity: 0;} to {top: 30px; opacity: 1;} }
-        @keyframes fadeout { from {top: 30px; opacity: 1;} to {top: 0; opacity: 0;} }
+        #toast.show { visibility: visible; animation: fadein 0.2s, fadeout 0.2s 0.6s; }
+        @keyframes fadein { from {top: 0; opacity: 0;} to {top: 20px; opacity: 1;} }
+        @keyframes fadeout { from {top: 20px; opacity: 1;} to {top: 0; opacity: 0;} }
     </style>
 </head>
 <body>
 
     <div id="toast">복사 완료!</div>
 
-    <h2>🏦 BLACKROCK 실전 상담 보드 (V5)</h2>
+    <h2>🏦 BLACKROCK 상담 보드 V6</h2>
 
     <div class="tab-bar" id="tabBar"></div>
     <div class="content-area" id="macroList"></div>
 
     <div class="admin-panel">
-        <strong>[탭 편집]</strong> <br><br>
-        <input type="text" id="newTabName" placeholder="새 탭 이름">
-        <button onclick="addTab()" style="background:#555; color:white;">탭 추가</button>
-        <button onclick="deleteCurrentTab()" style="background:#721c24; color:white;">탭 삭제</button>
+        <strong>[탭]</strong> 
+        <input type="text" id="newTabName" style="width:100px;" placeholder="새 이름">
+        <button onclick="addTab()" style="background:#555; color:white;">추가</button>
+        <button onclick="deleteCurrentTab()" style="background:#721c24; color:white;">삭제</button>
         <hr>
-        <strong>[문장 등록/수정]</strong><br><br>
-        <input type="text" id="newText" style="width: 75%;" placeholder="문장 내용을 입력하세요...">
-        <button onclick="addOrUpdateMacro()" id="addBtn" style="background:#007bff; color:white; padding:12px 20px;">저장하기</button>
+        <strong>[등록/수정]</strong>
+        <input type="text" id="newText" style="width: 65%;" placeholder="문장을 입력하세요...">
+        <button onclick="addOrUpdateMacro()" id="addBtn" style="background:#007bff; color:white;">저장</button>
     </div>
 
     <script>
-        let macros = JSON.parse(localStorage.getItem('br_macros_v5')) || { "신규인사": ["안녕하세요, 블랙록 강노을입니다."] };
+        let macros = JSON.parse(localStorage.getItem('br_macros_v6')) || { "신규인사": ["안녕하세요, 블랙록 강노을입니다."] };
         let categories = Object.keys(macros);
         let currentTab = categories[0];
         let editIndex = -1;
@@ -70,7 +73,7 @@
             renderMacros();
         }
 
-        function setTab(cat) { currentTab = cat; editIndex = -1; document.getElementById('addBtn').innerText = "저장하기"; init(); }
+        function setTab(cat) { currentTab = cat; editIndex = -1; document.getElementById('addBtn').innerText = "저장"; init(); }
 
         function renderMacros() {
             const list = document.getElementById('macroList');
@@ -82,6 +85,7 @@
                 item.dataset.index = idx;
                 item.innerHTML = `
                     <div class="handle">☰</div>
+                    <div class="num-tag">${idx + 1}.</div>
                     <div class="macro-text" onclick="copyText('${text.replace(/'/g, "\\'")}')">${text}</div>
                     <div class="btn-group">
                         <button class="edit-btn" onclick="editMacro(${idx})">편집</button>
@@ -100,7 +104,7 @@
             navigator.clipboard.writeText(text);
             const toast = document.getElementById("toast");
             toast.className = "show";
-            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 1000);
+            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 800);
         }
 
         let dragSrcIndex;
@@ -120,19 +124,19 @@
             const txt = document.getElementById('newText').value;
             if(!txt) return;
             if(editIndex === -1) { macros[currentTab].push(txt); } 
-            else { macros[currentTab][editIndex] = txt; editIndex = -1; document.getElementById('addBtn').innerText = "저장하기"; }
+            else { macros[currentTab][editIndex] = txt; editIndex = -1; document.getElementById('addBtn').innerText = "저장"; }
             save(); renderMacros(); document.getElementById('newText').value = '';
         }
 
         function editMacro(idx) {
             editIndex = idx;
             document.getElementById('newText').value = macros[currentTab][idx];
-            document.getElementById('addBtn').innerText = "수정완료";
+            document.getElementById('addBtn').innerText = "수정";
             document.getElementById('newText').focus();
         }
 
         function deleteMacro(idx) {
-            if(confirm("삭제하시겠습니까?")) {
+            if(confirm("삭제?")) {
                 macros[currentTab].splice(idx, 1);
                 save(); renderMacros();
             }
@@ -146,11 +150,11 @@
         }
 
         function deleteCurrentTab() {
-            if(categories.length <= 1 || !confirm(`[${currentTab}] 탭을 삭제할까요?`)) return;
+            if(categories.length <= 1 || !confirm(`[${currentTab}] 삭제?`)) return;
             delete macros[currentTab]; categories = Object.keys(macros); currentTab = categories[0]; save(); init();
         }
 
-        function save() { localStorage.setItem('br_macros_v5', JSON.stringify(macros)); }
+        function save() { localStorage.setItem('br_macros_v6', JSON.stringify(macros)); }
         init();
     </script>
 </body>
