@@ -15,25 +15,24 @@
 
         .container { padding: 8px 12px; height: calc(100vh - 45px); overflow-y: auto; }
         .tab-bar { display: flex; gap: 4px; margin-bottom: 8px; flex-wrap: wrap; }
-        .tab-btn { padding: 4px 10px; background: #2a2a2a; border: none; color: #888; cursor: pointer; border-radius: 4px; font-size: 12px; }
+        .tab-btn { padding: 4px 10px; background: #2a2a2a; border: none; color: #888; cursor: pointer; border-radius: 4px; font-size: 12px; transition: 0.2s; }
         .tab-btn.active { background: var(--point); color: white; font-weight: bold; }
+        .tab-btn:hover { background: #3a3a3a; color: #fff; }
 
         .macro-list { display: grid; grid-template-columns: 1fr; gap: 4px; } 
         
-        /* ⚡ 문장 간 간격을 살짝 주어 구분이 잘 가게 함 */
         .macro-item { display: flex; align-items: flex-start; background: var(--item); padding: 8px 12px; border-radius: 4px; border: 1px solid #2d2d2d; outline: none; cursor: move; } 
         .macro-item:hover { border-color: var(--point); background: #2a2a2a; }
         .macro-item:focus { border-color: #ffc107; background: #333; }
         
         .num { color: #555; width: 20px; font-weight: bold; font-size: 11px; flex-shrink: 0; margin-top: 3px; }
         
-        /* ⚡ [필살기] 엔터(줄바꿈) 보존 설정 */
         .macro-content { 
             flex: 1; 
             cursor: pointer; 
             font-size: 14px; 
             line-height: 1.5; 
-            white-space: pre-wrap; /* 엔터와 공백을 그대로 다 보여줌 */
+            white-space: pre-wrap; 
             word-break: break-all; 
             display: block; 
             padding-bottom: 2px;
@@ -45,6 +44,7 @@
 
         #contextMenu { display: none; position: fixed; background: #2a2a2a; border: 1px solid #444; z-index: 2000; border-radius: 6px; padding: 5px 0; min-width: 140px; }
         #contextMenu div { padding: 8px 15px; cursor: pointer; font-size: 13px; color: white; }
+        #contextMenu div:hover { background: var(--point); }
         #toast { visibility: hidden; position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--point); color: white; padding: 8px 20px; border-radius: 30px; font-size: 12px; z-index: 6000; }
         #toast.show { visibility: visible; animation: fadein 0.2s, fadeout 0.2s 0.7s; }
         @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
@@ -88,16 +88,25 @@
     let curTab = Object.keys(db)[0];
     let editIdx = -1;
     let rightClickedTab = "";
+    let dragTabName = ""; // 탭 이동용 변수
 
     function render() {
         const list = document.getElementById('list');
         const tabBar = document.getElementById('tabBar');
         const search = document.getElementById('searchBox').value.toLowerCase();
         
+        // 1. 탭 렌더링 (드래그 기능 추가)
         tabBar.innerHTML = Object.keys(db).map(t => 
-            `<button class="tab-btn ${t===curTab?'active':''}" onclick="setTab('${t}')" oncontextmenu="showTabMenu(event, '${t}')">${t}</button>`
+            `<button class="tab-btn ${t===curTab?'active':''}" 
+                draggable="true"
+                onclick="setTab('${t}')" 
+                oncontextmenu="showTabMenu(event, '${t}')"
+                ondragstart="tabDragStart(event, '${t}')"
+                ondragover="event.preventDefault()"
+                ondrop="tabDrop(event, '${t}')">${t}</button>`
         ).join('');
         
+        // 2. 문장 리스트 렌더링
         list.innerHTML = "";
         (db[curTab] || []).forEach((item, i) => {
             if(item.t.toLowerCase().includes(search)) {
@@ -112,9 +121,18 @@
 
                 div.innerHTML = `<div class="num">${i+1}</div><div class="macro-content">${item.t}</div>`;
                 
-                div.addEventListener('dragstart', (e) => { e.dataTransfer.setData('idx', i); div.style.opacity = '0.4'; });
+                // 문장 드래그 앤 드롭 로직
+                div.addEventListener('dragstart', (e) => { 
+                    e.dataTransfer.setData('idx', i); 
+                    e.dataTransfer.setData('type', 'item');
+                    div.style.opacity = '0.4'; 
+                });
                 div.addEventListener('dragover', (e) => e.preventDefault());
                 div.addEventListener('drop', (e) => {
+                    e.stopPropagation();
+                    const type = e.dataTransfer.getData('type');
+                    if(type !== 'item') return; // 문장이 아니면 무시
+
                     const from = e.dataTransfer.getData('idx');
                     const target = db[curTab].splice(from, 1)[0];
                     db[curTab].splice(i, 0, target);
@@ -126,8 +144,35 @@
         });
     }
 
+    // --- 탭 이동 관련 신규 함수 ---
+    function tabDragStart(e, name) {
+        dragTabName = name;
+        e.dataTransfer.setData('type', 'tab');
+    }
+
+    function tabDrop(e, targetName) {
+        e.preventDefault();
+        const type = e.dataTransfer.getData('type');
+        if(type !== 'tab' || dragTabName === targetName) return;
+
+        const keys = Object.keys(db);
+        const fromIdx = keys.indexOf(dragTabName);
+        const toIdx = keys.indexOf(targetName);
+
+        // 탭 순서 재배치
+        keys.splice(fromIdx, 1);
+        keys.splice(toIdx, 0, dragTabName);
+
+        // 새로운 순서로 db 객체 재생성 (Object.keys 순서 보존)
+        const newDb = {};
+        keys.forEach(k => { newDb[k] = db[k]; });
+        db = newDb;
+        
+        saveDB(); render();
+    }
+    // ----------------------------
+
     function copy(t) {
-        // 복사할 때는 찌꺼기만 제거하고 줄바꿈은 유지
         const cleanText = t.trim().replace(/[\x00-\x1F\x7F-\x9F]/g, "");
         navigator.clipboard.writeText(cleanText).then(() => {
             const ts = document.getElementById('toast');
@@ -146,7 +191,7 @@
     }
     function closeModal() { document.getElementById('modalOverlay').style.display = 'none'; }
     function saveItem() {
-        const t = document.getElementById('modalInp').value; // .trim()을 빼서 의도한 엔터 유지
+        const t = document.getElementById('modalInp').value;
         if(!t.trim()) return;
         if(editIdx === -1) db[curTab].push({t:t});
         else db[curTab][editIdx].t = t;
@@ -178,7 +223,15 @@
     }
     function editTabPrompt() {
         const n = prompt("탭 이름 수정?", rightClickedTab);
-        if(n && n !== rightClickedTab && !db[n]) { db[n] = db[rightClickedTab]; delete db[rightClickedTab]; curTab = n; saveDB(); render(); }
+        if(n && n !== rightClickedTab && !db[n]) {
+            const newDb = {};
+            Object.keys(db).forEach(k => {
+                if(k === rightClickedTab) newDb[n] = db[k];
+                else newDb[k] = db[k];
+            });
+            db = newDb;
+            curTab = n; saveDB(); render();
+        }
     }
     function delTabConfirm() {
         if(Object.keys(db).length > 1 && confirm(`삭제할까요?`)) { delete db[rightClickedTab]; curTab = Object.keys(db)[0]; saveDB(); render(); }
@@ -186,6 +239,7 @@
     function setTab(t) { curTab = t; render(); }
     function delItem(i) { if(confirm("삭제할까요?")) { db[curTab].splice(i, 1); saveDB(); render(); } }
     function saveDB() { localStorage.setItem('br_v10', JSON.stringify(db)); }
+    
     function exportData() {
         const blob = new Blob([JSON.stringify(db)], {type: 'application/json'});
         const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'blackrock_v10.json'; a.click();
