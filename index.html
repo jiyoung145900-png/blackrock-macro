@@ -1,20 +1,20 @@
-<!DOCTYPE html>
+html_content = """<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>은행 거래 화면 캡처 제조기</title>
+  <title>BANADA 스케줄 알림 팝업 캡처 에디터</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
     }
     body {
-      background-color: #f0f2f5;
-      color: #333;
+      background-color: #1e1e24;
+      color: #e1e1e6;
       display: flex;
       justify-content: center;
       align-items: flex-start;
@@ -27,7 +27,7 @@
       gap: 30px;
       justify-content: center;
       align-items: flex-start;
-      max-width: 1200px;
+      max-width: 1100px;
       width: 100%;
     }
 
@@ -41,32 +41,32 @@
       top: 20px;
     }
 
-    /* 핸드폰 화면 (프레임 없음, 라운드 코너만) */
+    /* 핸드폰 화면 */
     .phone-screen {
-      background-color: #ffffff;
+      background-color: #313235;
       overflow: hidden;
       position: relative;
       display: flex;
       flex-direction: column;
-      border-radius: 20px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+      border-radius: 28px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
       transition: width 0.3s ease, height 0.3s ease;
+      user-select: none;
     }
 
     /* 상단바 (Status Bar) */
     .status-bar {
-      height: 38px;
+      height: 40px;
       width: 100%;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0 16px;
-      color: #000000;
+      padding: 0 20px;
+      color: #ffffff;
       font-size: 13px;
       font-weight: 600;
       z-index: 100;
-      background: #ffffff;
-      user-select: none;
+      background: transparent;
     }
     .status-left {
       display: flex;
@@ -76,253 +76,185 @@
     .status-right {
       display: flex;
       align-items: center;
-      gap: 4px;
-    }
-    .sys-icon {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 16px;
-      height: 12px;
-    }
-    .battery-text {
-      font-size: 11px;
-      font-weight: 700;
-    }
-
-    /* 은행 앱 콘텐츠 */
-    .content-area {
-      flex: 1;
-      overflow-y: auto;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* 국민은행 스타일 */
-    .kb-container {
-      padding: 24px 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-    }
-
-    .kb-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 32px;
-    }
-    .kb-title {
-      font-size: 16px;
-      color: #333;
-      font-weight: 500;
-      letter-spacing: -0.5px;
-    }
-    .kb-icons {
-      display: flex;
-      gap: 16px;
-    }
-    .kb-icon-btn {
-      font-size: 24px;
-      cursor: pointer;
-      background: transparent;
-      border: none;
-    }
-
-    .kb-main {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0;
-      margin-bottom: 28px;
-    }
-
-    .kb-character-wrapper {
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 20px;
-    }
-
-    .kb-character {
-      width: 100px;
-      height: 100px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #9b8577 0%, #c7a882 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 60px;
-    }
-
-    .kb-badge {
-      width: 44px;
-      height: 44px;
-      background: #ffc107;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 28px;
-      font-weight: 700;
-      color: white;
-      position: absolute;
-      right: 0;
-      bottom: 0;
-      border: 3px solid white;
-    }
-
-    .kb-recipient {
-      font-size: 18px;
-      font-weight: 600;
-      color: #1a1a1a;
-      text-align: center;
-      margin-bottom: 4px;
-      letter-spacing: -0.3px;
-    }
-
-    .kb-amount {
-      font-size: 28px;
-      font-weight: 700;
-      color: #1a1a1a;
-      text-align: center;
-      margin-bottom: 4px;
-      letter-spacing: -0.5px;
-    }
-
-    .kb-status {
-      font-size: 14px;
-      color: #888;
-      text-align: center;
-      letter-spacing: -0.3px;
-    }
-
-    .kb-account-number-box {
-      background: #f5f5f5;
-      border-radius: 8px;
-      padding: 14px 16px;
-      margin-bottom: 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .kb-account-number-text {
-      font-size: 13px;
-      color: #333;
-      font-weight: 500;
-      letter-spacing: -0.2px;
-    }
-
-    .kb-account-number-star {
-      font-size: 18px;
-      color: #ccc;
-      cursor: pointer;
-    }
-
-    .kb-account-box {
-      background: transparent;
-      border-radius: 0;
-      padding: 0;
-      margin-bottom: 20px;
-    }
-
-    .kb-account-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 12px 0;
-      font-size: 13px;
-      border-bottom: 1px solid #f0f0f0;
-    }
-    .kb-account-row:last-child {
-      border-bottom: none;
-    }
-    .kb-account-label {
-      color: #666;
-      font-weight: 500;
-      letter-spacing: -0.2px;
-    }
-    .kb-account-value {
-      color: #1a1a1a;
-      font-weight: 500;
-      text-align: right;
-      letter-spacing: -0.2px;
-    }
-
-    .kb-buttons {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-    .kb-btn {
-      flex: 1;
-      padding: 12px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      background: #ffffff;
-      color: #333;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      letter-spacing: -0.3px;
-    }
-
-    .kb-warning {
-      background: #f5f5f5;
-      border-left: 3px solid #666;
-      padding: 12px 14px;
-      margin-bottom: 20px;
-      border-radius: 4px;
+      gap: 6px;
       font-size: 12px;
-      color: #666;
-      line-height: 1.6;
-      letter-spacing: -0.3px;
+    }
+    .battery-icon {
+      display: inline-block;
+      width: 20px;
+      height: 10px;
+      border: 1px solid #ffffff;
+      border-radius: 3px;
+      padding: 1px;
+      position: relative;
+    }
+    .battery-level {
+      height: 100%;
+      background-color: #ffffff;
+      border-radius: 1px;
+      width: 74%;
     }
 
-    .kb-warning-icon {
-      font-size: 14px;
-      margin-right: 8px;
+    /* 앱 내 상단 네비게이션바 */
+    .app-nav {
+      height: 50px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 16px;
+      color: #ffffff;
     }
-
-    .kb-confirm-btn {
-      width: 100%;
-      padding: 14px;
-      background: #ffc107;
-      border: none;
-      border-radius: 6px;
-      font-size: 16px;
-      font-weight: 700;
-      color: #333;
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 15px;
+      font-weight: 600;
       cursor: pointer;
-      letter-spacing: -0.4px;
+    }
+    .back-arrow {
+      font-size: 18px;
+      font-weight: 300;
+    }
+    .nav-right {
+      display: flex;
+      gap: 8px;
+    }
+    .nav-btn {
+      background: rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 16px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
     }
 
-    /* 컨트롤 패널 */
+    /* 메인 팝업 오버레이 레이아웃 */
+    .popup-container {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.25);
+    }
+
+    .notice-card {
+      width: 100%;
+      background: #e5e5e7;
+      border-radius: 28px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+
+    .notice-header-area {
+      padding: 24px 20px 16px 20px;
+    }
+
+    .notice-title {
+      font-size: 26px;
+      font-weight: 800;
+      color: #2c2c2e;
+      margin-bottom: 12px;
+      letter-spacing: -0.5px;
+    }
+
+    .notice-main-text {
+      font-size: 15px;
+      font-weight: 600;
+      color: #3a3a3c;
+      margin-bottom: 6px;
+      line-height: 1.4;
+      word-break: keep-all;
+    }
+
+    .notice-highlight {
+      color: #d32f2f;
+      font-weight: 700;
+    }
+
+    .notice-sub-text {
+      font-size: 13px;
+      color: #636366;
+      font-weight: 500;
+    }
+
+    /* 이미지 바너 영역 */
+    .notice-banner-box {
+      width: 100%;
+      height: 200px;
+      background: #f8a5c2;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .notice-banner-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* 기본 SVG 배너 디자인 (이미지 없을 시 기본 표시) */
+    .default-banner-svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .notice-footer-area {
+      padding: 16px 20px 20px 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .confirm-button {
+      background: #6e7175;
+      color: #ffffff;
+      border: none;
+      padding: 10px 28px;
+      border-radius: 20px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      min-width: 80px;
+    }
+
+    /* 컨트롤 패널 스타일 */
     .control-panel {
-      background: #ffffff;
+      background: #28292e;
       border-radius: 20px;
       padding: 25px;
-      width: 460px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      width: 440px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
       max-height: 90vh;
       overflow-y: auto;
+      border: 1px solid #3a3b40;
     }
     .control-panel h2 {
-      font-size: 20px;
-      margin-bottom: 20px;
-      color: #111;
-      border-bottom: 2px solid #f0f2f5;
+      font-size: 18px;
+      margin-bottom: 18px;
+      color: #ffffff;
+      border-bottom: 1px solid #3a3b40;
       padding-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
     .section-title {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
-      color: #007aff;
-      margin: 16px 0 10px 0;
+      color: #ff7597;
+      margin: 18px 0 10px 0;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.8px;
     }
     .form-group {
       margin-bottom: 12px;
@@ -331,24 +263,24 @@
       display: block;
       font-size: 12px;
       font-weight: 600;
-      color: #555;
+      color: #aaaaee;
       margin-bottom: 5px;
     }
     input[type="text"], input[type="number"], select {
       width: 100%;
       padding: 9px 12px;
-      border: 1px solid #ddd;
+      background-color: #1e1e24;
+      border: 1px solid #44454d;
       border-radius: 8px;
       font-size: 13px;
+      color: #ffffff;
       outline: none;
       transition: all 0.2s;
-      font-family: inherit;
     }
     input[type="text"]:focus, select:focus {
-      border-color: #007aff;
-      box-shadow: 0 0 0 3px rgba(0,122,255,0.1);
+      border-color: #ff7597;
+      box-shadow: 0 0 0 2px rgba(255,117,151,0.2);
     }
-
     .form-row {
       display: flex;
       gap: 10px;
@@ -358,44 +290,60 @@
       margin-bottom: 12px;
     }
 
-    .btn {
-      background: #007aff;
+    .btn-download {
+      background: linear-gradient(135deg, #ff5e84, #ff8fa3);
       color: #fff;
       border: none;
-      padding: 10px 16px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 600;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
       cursor: pointer;
-      transition: background 0.2s;
+      width: 100%;
+      margin-top: 20px;
+      box-shadow: 0 4px 15px rgba(255, 94, 132, 0.4);
+      transition: transform 0.1s, opacity 0.2s;
+    }
+    .btn-download:hover {
+      opacity: 0.95;
+      transform: translateY(-1px);
+    }
+
+    .file-input-wrapper {
+      position: relative;
+      overflow: hidden;
+      display: inline-block;
       width: 100%;
     }
-    .btn:hover { background: #0056b3; }
-
-    .btn-download {
-      background: #34C759;
-      margin-top: 15px;
-      padding: 12px;
-      font-size: 14px;
-    }
-    .btn-download:hover { background: #30B050; }
-
-    .download-info {
-      font-size: 11px;
-      color: #999;
+    .file-input-btn {
+      border: 1px dashed #666;
+      border-radius: 8px;
+      padding: 10px;
       text-align: center;
-      margin-top: 8px;
+      background: #1e1e24;
+      color: #ccc;
+      font-size: 12px;
+      cursor: pointer;
+      width: 100%;
+    }
+    .file-input-wrapper input[type=file] {
+      font-size: 100px;
+      position: absolute;
+      left: 0;
+      top: 0;
+      opacity: 0;
+      cursor: pointer;
     }
 
     .note-box {
-      background: #fffacd;
-      border-left: 3px solid #ffc107;
+      background: rgba(255, 117, 151, 0.1);
+      border-left: 3px solid #ff7597;
       padding: 10px 12px;
       border-radius: 4px;
       font-size: 11px;
-      color: #666;
-      margin-top: 10px;
-      line-height: 1.4;
+      color: #ddd;
+      margin-top: 14px;
+      line-height: 1.5;
     }
   </style>
 </head>
@@ -404,198 +352,165 @@
   <div class="main-container">
     <!-- 왼쪽 화면 프리뷰 -->
     <div class="preview-section">
-      <div class="phone-screen" id="phoneScreen" style="width: 360px; height: 780px;">
+      <div class="phone-screen" id="phoneScreen" style="width: 380px; height: 500px;">
         
         <!-- 상단바 -->
-        <div class="status-bar">
+        <div class="status-bar" id="statusBar">
           <div class="status-left">
-            <span id="timeDisplay">2:28</span>
+            <span id="timeDisplay">10:09 AM</span>
           </div>
           <div class="status-right">
-            <span class="sys-icon">📶</span>
-            <span class="sys-icon">📡</span>
-            <span class="battery-text" id="batteryDisplay">74</span>
-            <span class="sys-icon">🔋</span>
+            <span>📶</span>
+            <span>📡</span>
+            <div class="battery-icon">
+              <div class="battery-level" id="batteryDisplay" style="width: 74%;"></div>
+            </div>
+            <span id="batteryTextDisplay">74%</span>
           </div>
         </div>
 
-        <!-- 콘텐츠 영역 -->
-        <div class="content-area">
-          <div class="kb-container">
+        <!-- 앱 헤더 네비바 -->
+        <div class="app-nav">
+          <div class="nav-left">
+            <span class="back-arrow">⟨</span>
+            <span id="navTitleDisplay">스케줄</span>
+          </div>
+          <div class="nav-right">
+            <button class="nav-btn" id="navBtn1">선택</button>
+            <button class="nav-btn" id="navBtn2">•••</button>
+          </div>
+        </div>
+
+        <!-- 팝업 컨테이너 -->
+        <div class="popup-container">
+          <div class="notice-card" id="noticeCard">
             
-            <div class="kb-header">
-              <div class="kb-title">이체</div>
-              <div class="kb-icons">
-                <div class="kb-icon-btn">⏠</div>
-                <div class="kb-icon-btn">☰</div>
+            <!-- 팝업 상단 텍스트 -->
+            <div class="notice-header-area">
+              <div class="notice-title" id="titleDisplay">Notice</div>
+              <div class="notice-main-text" id="mainTextDisplay">
+                회원님, 이벤트 <span class="notice-highlight" id="highlightDisplay">미완료</span> 상태 입니다
               </div>
+              <div class="notice-sub-text" id="subTextDisplay">(담당 실장님에게 문의 부탁드립니다)</div>
             </div>
 
-            <div class="kb-main">
-              <div class="kb-character-wrapper">
-                <div class="kb-character">🐻</div>
-                <div class="kb-badge">W</div>
-              </div>
-              <div class="kb-recipient" id="recipientName">차상훈 님께</div>
-              <div class="kb-amount" id="amountDisplay">30,000 원</div>
-              <div class="kb-status" id="statusDisplay">이체가 완료되었습니다.</div>
+            <!-- 메인 배너 이미지 -->
+            <div class="notice-banner-box" id="bannerBox">
+              <svg class="default-banner-svg" id="defaultSvg" viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg">
+                <rect width="100%" height="100%" fill="#f89cb9"/>
+                <!-- 하트 및 손 커스텀 그래픽 -->
+                <g transform="translate(160, 90)">
+                  <path d="M 0,20 C -40,-20 -60,-50 0,-80 C 60,-50 40,-20 0,20 Z" fill="#f06292" transform="scale(1.2) translate(0, 15)"/>
+                  <path d="M -30,-10 C -60,-40 -80,-10 -50,20 C -20,40 0,10 -30,-10 Z" fill="#ffb74d" opacity="0.3"/>
+                  <!-- BANADA 텍스트/엠블럼 -->
+                  <text x="0" y="-12" font-family="'Times New Roman', serif" font-style="italic" font-size="22" font-weight="bold" fill="#7a1a3a" text-anchor="middle">BANADA</text>
+                  <!-- 손 모양 트레이스 -->
+                  <path d="M -110,30 Q -60,0 -20,10 Q -10,30 -50,50 Z" fill="#ffe0bd" opacity="0.9"/>
+                </g>
+              </svg>
+              <img id="customBannerImg" class="notice-banner-img" src="" style="display: none;" alt="Banner" />
             </div>
 
-            <div class="kb-account-number-box">
-              <span class="kb-account-number-text" id="recipientAccountDisplay">케이뱅크 100215386552</span>
-              <span class="kb-account-number-star">⭐</span>
-            </div>
-
-            <div class="kb-account-box">
-              <div class="kb-account-row">
-                <span class="kb-account-label">받는 분</span>
-                <span class="kb-account-value" id="recipientNameAlt">차상훈</span>
-              </div>
-              <div class="kb-account-row">
-                <span class="kb-account-label">받는 계좌</span>
-                <span class="kb-account-value" id="recipientAccountAlt">케이뱅크 100215386552</span>
-              </div>
-              <div class="kb-account-row">
-                <span class="kb-account-label">이체금액</span>
-                <span class="kb-account-value" id="amountAlt">420,000원</span>
-              </div>
-              <div class="kb-account-row">
-                <span class="kb-account-label">출금계좌</span>
-                <span class="kb-account-value" id="senderAccountDisplay">우체국 300566020203310</span>
-              </div>
-              <div class="kb-account-row">
-                <span class="kb-account-label">수수료</span>
-                <span class="kb-account-value" id="feeDisplay">면제</span>
-              </div>
-              <div class="kb-account-row">
-                <span class="kb-account-label">내 통장표기</span>
-                <span class="kb-account-value" id="noteMemoDisplay">차상훈</span>
-              </div>
-              <div class="kb-account-row">
-                <span class="kb-account-label">받는 분 통장표기</span>
-                <span class="kb-account-value" id="recipientMemoDisplay">김용</span>
-              </div>
-            </div>
-
-            <div class="kb-buttons">
-              <button class="kb-btn">추가이체</button>
-              <button class="kb-btn">거래내역조회</button>
-            </div>
-
-            <div class="kb-warning">
-              <span class="kb-warning-icon">ℹ️</span>
-              다른 은행 계좌로 이체 시 입금 은행의 사정에 따라 해당 계좌의 입금 은행의 사정에 따라 지연될 수 있습니다.
+            <!-- 하단 버튼 -->
+            <div class="notice-footer-area">
+              <button class="confirm-button" id="confirmBtnDisplay">확인</button>
             </div>
 
           </div>
         </div>
-
-        <button class="kb-confirm-btn">확인</button>
 
       </div>
 
       <!-- 다운로드 버튼 -->
-      <button class="btn btn-download" id="btnDownload">📥 JPG 다운로드</button>
-      <div class="download-info">직사각형 캡처 이미지로 저장됩니다</div>
+      <button class="btn-download" id="btnDownload">📸 고화질 캡처 저장 (JPG)</button>
     </div>
 
     <!-- 오른쪽 편집 패널 -->
     <div class="control-panel">
-      <h2>📱 거래내역 편집</h2>
+      <h2>⚙️ BANADA 스케줄 팝업 에디터</h2>
 
-      <!-- 기기 선택 -->
-      <div class="section-title">기기 & 크기</div>
+      <!-- 기기 & 크기 -->
+      <div class="section-title">1. 화면 크기 & 기종</div>
       <div class="form-group">
-        <label for="deviceSelect">기종 선택</label>
+        <label for="deviceSelect">프레임 크기</label>
         <select id="deviceSelect">
-          <option value="360-780">일반 안드로이드 (360 x 780)</option>
-          <option value="375-812">아이폰 13 (375 x 812)</option>
-          <option value="390-844">픽셀 6 (390 x 844)</option>
+          <option value="380-500">스퀘어 팝업 뷰 (380 x 500)</option>
+          <option value="360-720">풀 스크린 - 모바일 1 (360 x 720)</option>
+          <option value="390-844">풀 스크린 - 아이폰 (390 x 844)</option>
         </select>
       </div>
 
-      <!-- 은행 선택 (나중에 확장) -->
-      <div class="section-title">은행 선택</div>
-      <div class="form-group">
-        <label for="bankSelect">은행</label>
-        <select id="bankSelect">
-          <option value="kb">국민은행 ✓</option>
-          <option value="shinhan" disabled>신한은행 (준비중)</option>
-          <option value="woori" disabled>우리은행 (준비중)</option>
-          <option value="ibk" disabled>기업은행 (준비중)</option>
-        </select>
-      </div>
-
-      <!-- 시간 & 배터리 -->
-      <div class="section-title">상단바</div>
+      <!-- 상단바 설정 -->
+      <div class="section-title">2. 휴대폰 상단바</div>
       <div class="form-row">
         <div class="form-group">
-          <label for="timeInput">시간</label>
-          <input type="text" id="timeInput" value="2:28" placeholder="H:MM" />
+          <label for="timeInput">시간 표시</label>
+          <input type="text" id="timeInput" value="10:09 AM" />
         </div>
         <div class="form-group">
-          <label for="batteryInput">배터리</label>
+          <label for="batteryInput">배터리 (%)</label>
           <input type="number" id="batteryInput" value="74" min="0" max="100" />
         </div>
       </div>
-
-      <!-- 받는 분 정보 -->
-      <div class="section-title">받는 분 정보</div>
       <div class="form-group">
-        <label for="recipientInput">받는 분 이름</label>
-        <input type="text" id="recipientInput" value="차상훈" />
-      </div>
-      <div class="form-group">
-        <label for="recipientAccountInput">받는 계좌 (은행명 계좌번호)</label>
-        <input type="text" id="recipientAccountInput" value="케이뱅크 100215386552" />
-      </div>
-      <div class="form-group">
-        <label for="recipientMemoInput">받는 분 통장표기</label>
-        <input type="text" id="recipientMemoInput" value="김용" />
+        <label for="navTitleInput">앱 상단 타이틀</label>
+        <input type="text" id="navTitleInput" value="스케줄" />
       </div>
 
-      <!-- 이체 금액 -->
-      <div class="section-title">이체 정보</div>
+      <!-- 팝업 내용 편집 -->
+      <div class="section-title">3. 팝업 공지 내용</div>
       <div class="form-group">
-        <label for="amountInput">이체 금액 (숫자만 입력, 쉼표 자동)</label>
-        <input type="number" id="amountInput" value="420000" />
+        <label for="titleInput">팝업 제목</label>
+        <input type="text" id="titleInput" value="Notice" />
       </div>
       <div class="form-group">
-        <label for="amountMainInput">메인 표시 금액 (숫자만)</label>
-        <input type="number" id="amountMainInput" value="30000" />
+        <label for="mainTextInput">메인 문구</label>
+        <input type="text" id="mainTextInput" value="회원님, 이벤트 미완료 상태 입니다" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="highlightInput">강조 단어 (빨간색)</label>
+          <input type="text" id="highlightInput" value="미완료" />
+        </div>
+        <div class="form-group">
+          <label for="btnTextInput">하단 버튼 텍스트</label>
+          <input type="text" id="btnTextInput" value="확인" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="subTextInput">보조 설명 문구</label>
+        <input type="text" id="subTextInput" value="(담당 실장님에게 문의 부탁드립니다)" />
       </div>
 
-      <!-- 출금 계좌 -->
-      <div class="section-title">출금 계좌</div>
+      <!-- 이미지 및 색상 -->
+      <div class="section-title">4. 배너 이미지 및 스타일</div>
       <div class="form-group">
-        <label for="senderAccountInput">출금계좌 (은행명 계좌번호)</label>
-        <input type="text" id="senderAccountInput" value="우체국 300566020203310" />
+        <label>커스텀 이미지 교체 (선택사항)</label>
+        <div class="file-input-wrapper">
+          <div class="file-input-btn">📁 이미지 파일 선택 (클릭하여 업로드)</div>
+          <input type="file" id="imageUploader" accept="image/*" />
+        </div>
       </div>
-      <div class="form-group">
-        <label for="senderMemoInput">내 통장표기</label>
-        <input type="text" id="senderMemoInput" value="차상훈" />
-      </div>
-
-      <!-- 기타 -->
-      <div class="section-title">기타</div>
-      <div class="form-group">
-        <label for="feeInput">수수료</label>
-        <input type="text" id="feeInput" value="면제" />
-      </div>
-      <div class="form-group">
-        <label for="statusInput">상태 메시지</label>
-        <input type="text" id="statusInput" value="이체가 완료되었습니다." />
+      <div class="form-row">
+        <div class="form-group">
+          <label for="bgColorInput">배너 배경색</label>
+          <input type="text" id="bgColorInput" value="#f89cb9" placeholder="#f89cb9" />
+        </div>
+        <div class="form-group">
+          <label for="btnColorInput">버튼 색상</label>
+          <input type="text" id="btnColorInput" value="#6e7175" placeholder="#6e7175" />
+        </div>
       </div>
 
       <div class="note-box">
-        💡 <strong>팁:</strong> 입력 필드를 수정하면 왼쪽 미리보기가 실시간으로 업데이트됩니다!
+        💡 <strong>안내:</strong> 내용을 수정하면 좌측 프리뷰에 실시간 반영됩니다. 편집 완료 후 [고화질 캡처 저장] 버튼을 누르면 정교한 이미지로 다운로드됩니다.
       </div>
 
     </div>
   </div>
 
   <script>
-    // DOM 요소
+    // DOM 요소 참조
     const phoneScreen = document.getElementById('phoneScreen');
     const deviceSelect = document.getElementById('deviceSelect');
     
@@ -603,33 +518,31 @@
     const batteryInput = document.getElementById('batteryInput');
     const timeDisplay = document.getElementById('timeDisplay');
     const batteryDisplay = document.getElementById('batteryDisplay');
+    const batteryTextDisplay = document.getElementById('batteryTextDisplay');
 
-    const recipientInput = document.getElementById('recipientInput');
-    const recipientName = document.getElementById('recipientName');
-    const recipientNameAlt = document.getElementById('recipientNameAlt');
+    const navTitleInput = document.getElementById('navTitleInput');
+    const navTitleDisplay = document.getElementById('navTitleDisplay');
 
-    const recipientAccountInput = document.getElementById('recipientAccountInput');
-    const recipientAccountDisplay = document.getElementById('recipientAccountDisplay');
+    const titleInput = document.getElementById('titleInput');
+    const titleDisplay = document.getElementById('titleDisplay');
 
-    const recipientMemoInput = document.getElementById('recipientMemoInput');
-    const recipientMemoDisplay = document.getElementById('recipientMemoDisplay');
+    const mainTextInput = document.getElementById('mainTextInput');
+    const highlightInput = document.getElementById('highlightInput');
+    const mainTextDisplay = document.getElementById('mainTextDisplay');
 
-    const amountInput = document.getElementById('amountInput');
-    const amountMainInput = document.getElementById('amountMainInput');
-    const amountDisplay = document.getElementById('amountDisplay');
-    const amountAlt = document.getElementById('amountAlt');
+    const subTextInput = document.getElementById('subTextInput');
+    const subTextDisplay = document.getElementById('subTextDisplay');
 
-    const senderAccountInput = document.getElementById('senderAccountInput');
-    const senderAccountDisplay = document.getElementById('senderAccountDisplay');
+    const btnTextInput = document.getElementById('btnTextInput');
+    const confirmBtnDisplay = document.getElementById('confirmBtnDisplay');
 
-    const senderMemoInput = document.getElementById('senderMemoInput');
-    const noteMemoDisplay = document.getElementById('noteMemoDisplay');
+    const bgColorInput = document.getElementById('bgColorInput');
+    const btnColorInput = document.getElementById('btnColorInput');
+    const bannerBox = document.getElementById('bannerBox');
 
-    const feeInput = document.getElementById('feeInput');
-    const feeDisplay = document.getElementById('feeDisplay');
-
-    const statusInput = document.getElementById('statusInput');
-    const statusDisplay = document.getElementById('statusDisplay');
+    const imageUploader = document.getElementById('imageUploader');
+    const customBannerImg = document.getElementById('customBannerImg');
+    const defaultSvg = document.getElementById('defaultSvg');
 
     const btnDownload = document.getElementById('btnDownload');
 
@@ -640,44 +553,69 @@
       phoneScreen.style.height = height + 'px';
     });
 
-    // 실시간 업데이트 함수
-    function updateDisplay() {
-      timeDisplay.textContent = timeInput.value || '0:00';
-      batteryDisplay.textContent = batteryInput.value || '0';
+    // 실시간 업데이트 처리
+    function updatePreview() {
+      // 시간 및 배터리
+      timeDisplay.textContent = timeInput.value || '10:09 AM';
+      const bVal = Math.min(100, Math.max(0, parseInt(batteryInput.value) || 0));
+      batteryDisplay.style.width = bVal + '%';
+      batteryTextDisplay.textContent = bVal + '%';
+
+      // 상단 타이틀
+      navTitleDisplay.textContent = navTitleInput.value || '스케줄';
+
+      // 팝업 텍스트
+      titleDisplay.textContent = titleInput.value || 'Notice';
       
-      recipientName.textContent = recipientInput.value + ' 님께';
-      recipientNameAlt.textContent = recipientInput.value;
+      const rawText = mainTextInput.value || '';
+      const highlight = highlightInput.value || '';
       
-      recipientAccountDisplay.textContent = recipientAccountInput.value;
-      recipientMemoDisplay.textContent = recipientMemoInput.value;
-      
-      const amountMain = parseInt(amountMainInput.value) || 0;
-      amountDisplay.textContent = amountMain.toLocaleString() + ' 원';
-      
-      const amount = parseInt(amountInput.value) || 0;
-      amountAlt.textContent = amount.toLocaleString() + '원';
-      
-      senderAccountDisplay.textContent = senderAccountInput.value;
-      noteMemoDisplay.textContent = senderMemoInput.value;
-      
-      feeDisplay.textContent = feeInput.value;
-      statusDisplay.textContent = statusInput.value;
+      if (highlight && rawText.includes(highlight)) {
+        const parts = rawText.split(highlight);
+        mainTextDisplay.innerHTML = `${parts[0]}<span class="notice-highlight">${highlight}</span>${parts.slice(1).join(highlight)}`;
+      } else {
+        mainTextDisplay.textContent = rawText;
+      }
+
+      subTextDisplay.textContent = subTextInput.value || '';
+      confirmBtnDisplay.textContent = btnTextInput.value || '확인';
+
+      // 색상 반영
+      if (bgColorInput.value) {
+        bannerBox.style.backgroundColor = bgColorInput.value;
+      }
+      if (btnColorInput.value) {
+        confirmBtnDisplay.style.backgroundColor = btnColorInput.value;
+      }
     }
 
-    // 모든 입력 필드에 이벤트 리스너 추가
-    [timeInput, batteryInput, recipientInput, recipientAccountInput, recipientMemoInput,
-     amountInput, amountMainInput, senderAccountInput, senderMemoInput, feeInput, statusInput]
-      .forEach(input => input.addEventListener('input', updateDisplay));
+    // 파일 업로드 처리
+    imageUploader.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          customBannerImg.src = evt.target.result;
+          customBannerImg.style.display = 'block';
+          defaultSvg.style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+      }
+    });
 
-    // JPG 다운로드
+    // 이벤트 리스너 등록
+    [timeInput, batteryInput, navTitleInput, titleInput, mainTextInput, highlightInput, subTextInput, btnTextInput, bgColorInput, btnColorInput]
+      .forEach(element => element.addEventListener('input', updatePreview));
+
+    // JPG 저장
     btnDownload.addEventListener('click', async () => {
       btnDownload.disabled = true;
-      btnDownload.textContent = '📥 변환 중...';
+      btnDownload.textContent = '📸 변환 및 저장 중...';
 
       try {
         const canvas = await html2canvas(phoneScreen, {
-          backgroundColor: '#ffffff',
-          scale: 2,
+          backgroundColor: null,
+          scale: 3, // 고화질 렌더링
           logging: false,
           useCORS: true
         });
@@ -686,26 +624,32 @@
         link.href = canvas.toDataURL('image/jpeg', 0.95);
         
         const now = new Date();
-        const timestamp = now.getFullYear() + 
+        const timeStr = now.getFullYear() + 
                          String(now.getMonth() + 1).padStart(2, '0') +
                          String(now.getDate()).padStart(2, '0') + '_' +
                          String(now.getHours()).padStart(2, '0') +
                          String(now.getMinutes()).padStart(2, '0');
         
-        link.download = `KB거래내역_${timestamp}.jpg`;
+        link.download = `BANADA_Notice_${timeStr}.jpg`;
         link.click();
 
-      } catch (error) {
-        console.error('다운로드 오류:', error);
+      } catch (err) {
+        console.error(err);
         alert('이미지 저장 중 오류가 발생했습니다.');
       } finally {
         btnDownload.disabled = false;
-        btnDownload.textContent = '📥 JPG 다운로드';
+        btnDownload.textContent = '📸 고화질 캡처 저장 (JPG)';
       }
     });
 
-    // 초기 업데이트
-    updateDisplay();
+    // 초기 실행
+    updatePreview();
   </script>
 </body>
 </html>
+"""
+
+with open('banada_notice_editor.html', 'w', encoding='utf-8') as f:
+    f.write(html_content)
+
+print("HTML editor saved successfully!")
